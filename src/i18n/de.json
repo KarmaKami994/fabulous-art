@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "home": "Home",
+    "portfolio": "Portfolio",
+    "customDrawing": "Custom Drawing",
+    "about": "Über Mich",
+    "cv": "CV"
+  },
+  "footer": {
+    "copyright": "© 2026 FabulousArt. Alle Rechte vorbehalten.",
+    "privacy": "Datenschutz",
+    "email": "info.fabulousart@gmail.com"
+  },
+  "home": {
+    "heroTitle": "FABulousART",
+    "heroSubtitle": "Hyperrealistische Kohlezeichnungen",
+    "introText": "Fabienne Meyer ist eine in Zürich ansässige Künstlerin, bekannt für ihre hyperrealistischen Kohlezeichnungen, die Staunen und Bewunderung hervorrufen. Ihre akribische Technik und ihr tiefes Verständnis von Licht und Schatten erwecken ihre Motive mit verblüffendem Realismus zum Leben und laden den Betrachter ein, die Feinheiten der menschlichen Form und die Schönheit der natürlichen Welt zu betrachten.",
+    "portfolioTeaser": "Portfolio",
+    "viewPortfolio": "Portfolio ansehen",
+    "customDrawingTitle": "Custom Drawing Packages",
+    "portraitTitle": "Portrait",
+    "portraitDesc": "Möchtest du eine individuelle Zeichnung von dir oder jemand anderem? Oder ein Bild einer Landschaft? Dann ist dieses Angebot perfekt für dich. Ein Referenzfoto in hoher Auflösung ist wichtig für das bestmögliche Ergebnis. (Rahmen nicht inbegriffen)",
+    "familyTitle": "Couple / Family Portrait",
+    "familyDesc": "Möchtest du eine individuelle Zeichnung mit mehreren Personen? Ideal als Geburtstags- oder Hochzeitsgeschenk. Du kannst auch mehrere Referenzfotos zu einem Bild kombinieren. (Rahmen nicht inbegriffen)",
+    "creativeTitle": "Creative Package",
+    "creativeDesc": "Dein eigenes einzigartiges Meisterwerk, das alle bewundern werden. Gemeinsam mit mir entwickelst du ein einzigartiges kreatives Kunstprojekt, inklusive Fotoshooting mit Fotograf Massimo Mariano. Das Fotoshooting findet in Küssnacht am Rigi statt. (Rahmen nicht inbegriffen)",
+    "getTheDeal": "Jetzt anfragen"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "backToOverview": "Zurück zur Übersicht"
+  },
+  "lang": {
+    "switchTo": "EN",
+    "current": "DE"
+  }
+}

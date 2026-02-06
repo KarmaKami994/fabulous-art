@@ -1,0 +1,274 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { t } from '@/i18n/utils';
+
+const locale = 'de';
+---
+
+<BaseLayout title="Home" locale={locale} description="Hyperrealistische Kohlezeichnungen von Fabienne Meyer, Zürich. Individuelle Auftragszeichnungen und Portfolio.">
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero__bg">
+      <div class="hero__overlay"></div>
+    </div>
+    <div class="hero__content container">
+      <h1 class="hero__title">{t(locale, 'home.heroTitle')}</h1>
+      <p class="hero__subtitle">{t(locale, 'home.heroSubtitle')}</p>
+    </div>
+  </section>
+
+  <!-- Intro Section -->
+  <section class="intro section fade-in">
+    <div class="container container--narrow">
+      <p class="intro__text">{t(locale, 'home.introText')}</p>
+    </div>
+  </section>
+
+  <!-- Portfolio Teaser -->
+  <section class="teaser section fade-in">
+    <div class="container">
+      <a href="/de/portfolio" class="teaser__card">
+        <div class="teaser__image">
+          <img src="/images/portfolio/placeholder.jpg" alt="Portfolio" loading="lazy" />
+        </div>
+        <div class="teaser__label">
+          <h3>{t(locale, 'home.portfolioTeaser')}</h3>
+          <span class="teaser__arrow">&rarr;</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Custom Drawing Packages -->
+  <section class="packages section">
+    <div class="container">
+      <h2 class="packages__title fade-in">{t(locale, 'home.customDrawingTitle')}</h2>
+
+      <div class="packages__grid">
+        <!-- Portrait -->
+        <div class="packages__card fade-in fade-in-delay-1">
+          <h3 class="packages__card-title">{t(locale, 'home.portraitTitle')}</h3>
+          <p class="packages__card-desc">{t(locale, 'home.portraitDesc')}</p>
+          <a href="/de/custom-drawing#portrait" class="btn btn--outline">{t(locale, 'home.getTheDeal')}</a>
+        </div>
+
+        <!-- Family -->
+        <div class="packages__card fade-in fade-in-delay-2">
+          <h3 class="packages__card-title">{t(locale, 'home.familyTitle')}</h3>
+          <p class="packages__card-desc">{t(locale, 'home.familyDesc')}</p>
+          <a href="/de/custom-drawing#family" class="btn btn--outline">{t(locale, 'home.getTheDeal')}</a>
+        </div>
+
+        <!-- Creative -->
+        <div class="packages__card fade-in fade-in-delay-3">
+          <h3 class="packages__card-title">{t(locale, 'home.creativeTitle')}</h3>
+          <p class="packages__card-desc">{t(locale, 'home.creativeDesc')}</p>
+          <a href="/de/custom-drawing#creative" class="btn btn--outline">{t(locale, 'home.getTheDeal')}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 600px;
+    max-height: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    background: var(--color-gray-100);
+    /* Platzhalter — wird durch Hero-Bild ersetzt */
+    background-image: url('/images/hero/placeholder.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .hero__content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .hero__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-5xl);
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--color-black);
+    margin-bottom: var(--space-md);
+    animation: fadeUp 1s ease forwards;
+  }
+
+  .hero__subtitle {
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-gray-600);
+    max-width: none;
+    animation: fadeUp 1s ease 0.2s forwards;
+    opacity: 0;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Intro */
+  .intro {
+    text-align: center;
+  }
+
+  .intro__text {
+    font-size: var(--text-lg);
+    line-height: 1.8;
+    color: var(--color-gray-600);
+    margin-inline: auto;
+    max-width: 60ch;
+  }
+
+  /* Portfolio Teaser */
+  .teaser__card {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    aspect-ratio: 21 / 9;
+    background: var(--color-gray-100);
+  }
+
+  .teaser__image {
+    position: absolute;
+    inset: 0;
+  }
+
+  .teaser__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+  }
+
+  .teaser__card:hover .teaser__image img {
+    transform: scale(1.03);
+  }
+
+  .teaser__label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: var(--space-xl) var(--space-2xl);
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .teaser__label h3 {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    color: var(--color-white);
+    font-weight: 400;
+  }
+
+  .teaser__arrow {
+    font-size: var(--text-2xl);
+    color: var(--color-white);
+    transition: transform var(--transition-base);
+  }
+
+  .teaser__card:hover .teaser__arrow {
+    transform: translateX(8px);
+  }
+
+  /* Packages */
+  .packages__title {
+    text-align: center;
+    margin-bottom: var(--space-3xl);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  .packages__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2xl);
+  }
+
+  .packages__card {
+    padding: var(--space-2xl);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  }
+
+  .packages__card:hover {
+    border-color: var(--color-gray-400);
+    box-shadow: var(--shadow-md);
+  }
+
+  .packages__card-title {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    font-weight: 400;
+  }
+
+  .packages__card-desc {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    flex: 1;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .packages__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-xl);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      min-height: 500px;
+    }
+
+    .teaser__card {
+      aspect-ratio: 16 / 9;
+    }
+
+    .teaser__label {
+      padding: var(--space-md) var(--space-lg);
+    }
+  }
+</style>

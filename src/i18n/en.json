@@ -1,0 +1,37 @@
+{
+  "nav": {
+    "home": "Home",
+    "portfolio": "Portfolio",
+    "customDrawing": "Custom Drawing",
+    "about": "About Me",
+    "cv": "CV"
+  },
+  "footer": {
+    "copyright": "© 2026 FabulousArt. All Rights Reserved.",
+    "privacy": "Privacy Policy",
+    "email": "info.fabulousart@gmail.com"
+  },
+  "home": {
+    "heroTitle": "FABulousART",
+    "heroSubtitle": "Hyperrealistic Charcoal Drawings",
+    "introText": "Fabienne Meyer is a Zurich-based artist renowned for her hyperrealistic charcoal drawings that evoke a sense of wonder and awe. Her meticulous technique and profound understanding of light and shadow bring her subjects to life with striking realism, inviting viewers to contemplate the intricacies of the human form and the beauty of the natural world.",
+    "portfolioTeaser": "Portfolio",
+    "viewPortfolio": "View Portfolio",
+    "customDrawingTitle": "Custom Drawing Packages",
+    "portraitTitle": "Portrait",
+    "portraitDesc": "Do you want a custom drawing of yourself or someone else? Or a picture of a landscape? Then, this offer is perfect for you. It's important to have a reference photo already, and the higher the resolution, the better the final result will be. (Frame is not included)",
+    "familyTitle": "Couple / Family Portrait",
+    "familyDesc": "Do you want a custom drawing with multiple people? This is also great for a birthday or wedding gift, or just because. You can also combine several reference photos into a single image. (Frame is not included)",
+    "creativeTitle": "Creative Package",
+    "creativeDesc": "Your own unique masterpiece that everyone will admire. Together with me, you will develop a one-of-a-kind creative art project, which includes a photoshoot with photographer Massimo Mariano. The photoshoot takes place in Küssnacht am Rigi. (Frame is not included)",
+    "getTheDeal": "Get the Deal"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "backToOverview": "Back to Overview"
+  },
+  "lang": {
+    "switchTo": "DE",
+    "current": "EN"
+  }
+}

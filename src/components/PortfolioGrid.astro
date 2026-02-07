@@ -1,0 +1,60 @@
+---
+import PortfolioCard from './PortfolioCard.astro';
+import { type Locale } from '@/i18n/utils';
+
+interface PortfolioItem {
+  title: string;
+  slug: string;
+  image: string;
+  size: string;
+  medium: string;
+  year: number;
+  price: string;
+}
+
+interface Props {
+  items: PortfolioItem[];
+  locale: Locale;
+}
+
+const { items, locale } = Astro.props;
+---
+
+<div class="portfolio-grid">
+  {items.map((item, index) => (
+    <div class={`portfolio-grid__item fade-in fade-in-delay-${(index % 3) + 1}`}>
+      <PortfolioCard
+        title={item.title}
+        slug={item.slug}
+        image={item.image}
+        size={item.size}
+        medium={item.medium}
+        year={item.year}
+        price={item.price}
+        locale={locale}
+      />
+    </div>
+  ))}
+</div>
+
+<style>
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+
+  @media (max-width: 1024px) {
+    .portfolio-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-md);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .portfolio-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+  }
+</style>

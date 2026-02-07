@@ -1,13 +1,44 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import PortfolioGrid from '@/components/PortfolioGrid.astro';
+import { portfolioWorks } from '@/content/portfolio/works';
+import { t } from '@/i18n/utils';
+
 const locale = 'de';
-const pageTitle = 'Portfolio';
 ---
-<BaseLayout title={pageTitle} locale={locale}>
-  <section class="section" style="padding-top: calc(var(--header-height) + var(--space-4xl));">
+
+<BaseLayout
+  title={t(locale, 'portfolio.title')}
+  locale={locale}
+  description="Portfolio hyperrealistischer Kohlezeichnungen von Fabienne Meyer. Entdecken Sie einzigartige Kunstwerke."
+>
+  <section class="portfolio-page">
     <div class="container">
-      <h1>{pageTitle}</h1>
-      <p style="margin-top: var(--space-lg); color: var(--color-text-secondary);">Diese Seite wird noch aufgebaut.</p>
+      <header class="portfolio-page__header fade-in">
+        <h1 class="portfolio-page__title">{t(locale, 'portfolio.title')}</h1>
+      </header>
+
+      <PortfolioGrid items={portfolioWorks} locale={locale} />
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  .portfolio-page {
+    padding-top: calc(var(--header-height) + var(--space-3xl));
+    padding-bottom: var(--space-4xl);
+  }
+
+  .portfolio-page__header {
+    text-align: center;
+    margin-bottom: var(--space-3xl);
+  }
+
+  .portfolio-page__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-4xl);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--color-text);
+  }
+</style>

@@ -1,13 +1,243 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { customDrawingTranslations as i18n } from '@/i18n/customDrawing';
+
 const locale = 'de';
-const pageTitle = 'Custom Drawing';
+const t = i18n.de;
+const sizes = ['A3', 'A2', 'A1', 'A0'];
+const familyPersons = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+const creativePersons = [1, 2, 3, 4];
 ---
-<BaseLayout title={pageTitle} locale={locale}>
-  <section class="section" style="padding-top: calc(var(--header-height) + var(--space-4xl));">
-    <div class="container">
-      <h1>{pageTitle}</h1>
-      <p style="margin-top: var(--space-lg); color: var(--color-text-secondary);">Diese Seite wird noch aufgebaut.</p>
+
+<BaseLayout title={t.pageTitle} locale={locale} description={t.pageDesc}>
+
+<section class="cd-page">
+  <div class="container">
+    <header class="cd-page__header fade-in">
+      <h1 class="cd-page__title">{t.pageTitle}</h1>
+      <p class="cd-page__subtitle">{t.pageDesc}</p>
+    </header>
+
+    <div class="cd-tabs fade-in" role="tablist">
+      <button class="cd-tabs__btn is-active" role="tab" data-tab="portrait" aria-selected="true" id="tab-portrait">{t.tabs.portrait}</button>
+      <button class="cd-tabs__btn" role="tab" data-tab="family" aria-selected="false" id="tab-family">{t.tabs.family}</button>
+      <button class="cd-tabs__btn" role="tab" data-tab="creative" aria-selected="false" id="tab-creative">{t.tabs.creative}</button>
     </div>
-  </section>
+
+    <!-- PORTRAIT WIZARD -->
+    <div class="wizard" id="wizard-portrait" data-package="portrait" role="tabpanel" aria-labelledby="tab-portrait">
+      <div class="wizard__intro"><h2>{t.portrait.title}</h2><p>{t.portrait.desc}</p></div>
+      <div class="wizard__progress" data-steps="7"><div class="wizard__progress-bar"><div class="wizard__progress-fill"></div></div><div class="wizard__steps-label"></div></div>
+      <div class="wizard__step" data-step="1"><h3 class="wizard__step-title">{t.size.title}</h3><p class="wizard__step-subtitle">{t.size.subtitle}</p><div class="wizard__options" data-field="size">{sizes.map(s=><button class="wizard__option" data-value={s}>{s}</button>)}</div><div class="wizard__error" data-error="size"></div></div>
+      <div class="wizard__step" data-step="2"><h3 class="wizard__step-title">{t.format.title}</h3><p class="wizard__step-subtitle">{t.format.subtitle}</p><div class="wizard__options" data-field="format"><button class="wizard__option" data-value="horizontal">{t.format.horizontal}</button><button class="wizard__option" data-value="vertical">{t.format.vertical}</button></div><div class="wizard__error" data-error="format"></div></div>
+      <div class="wizard__step" data-step="3"><h3 class="wizard__step-title">{t.picture.title}</h3><p class="wizard__step-subtitle">{t.picture.subtitle}</p><ul class="wizard__req-list"><li>{t.picture.req1}</li><li>{t.picture.req2}</li></ul><div class="wizard__dropzone" data-field="image"><input type="file" accept="image/png,image/jpeg" class="wizard__file-input" /><div class="wizard__dropzone-content"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>{t.picture.dropzone}</span><small>{t.picture.maxSize}</small></div><div class="wizard__preview" style="display:none;"><img class="wizard__preview-img" alt="Preview" /><button type="button" class="wizard__preview-change">{t.picture.changeImage}</button></div></div><div class="wizard__error" data-error="image"></div></div>
+      <div class="wizard__step" data-step="4"><h3 class="wizard__step-title">{t.shipping.title}</h3><p class="wizard__step-subtitle">{t.shipping.subtitle}</p><div class="wizard__options" data-field="shipping"><button class="wizard__option" data-value="switzerland">{t.shipping.switzerland}</button><button class="wizard__option" data-value="europe">{t.shipping.europe}</button><button class="wizard__option" data-value="worldwide">{t.shipping.worldwide}</button></div><div class="wizard__error" data-error="shipping"></div></div>
+      <div class="wizard__step" data-step="5"><h3 class="wizard__step-title">{t.contact.title}</h3><p class="wizard__step-subtitle">{t.contact.subtitle}</p><div class="wizard__form-grid"><div class="wizard__field"><label>{t.contact.firstName} *</label><input type="text" data-field="firstName" required /></div><div class="wizard__field"><label>{t.contact.lastName} *</label><input type="text" data-field="lastName" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.email} *</label><input type="email" data-field="email" required /></div><div class="wizard__field"><label>{t.contact.phone}</label><input type="tel" data-field="phone" /></div><div class="wizard__field"><label>{t.contact.country} *</label><input type="text" data-field="country" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.address} *</label><input type="text" data-field="address" required /></div><div class="wizard__field"><label>{t.contact.zip} *</label><input type="text" data-field="zip" required /></div><div class="wizard__field"><label>{t.contact.city} *</label><input type="text" data-field="city" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.message}</label><textarea data-field="message" rows="3"></textarea></div></div><div class="wizard__error" data-error="contact"></div></div>
+      <div class="wizard__step" data-step="6"><h3 class="wizard__step-title">{t.reminder.title}</h3><p class="wizard__step-subtitle">{t.reminder.subtitle}</p><label class="wizard__checkbox"><input type="checkbox" data-field="reminderAccepted" /><span>{t.reminder.accept}</span></label><div class="wizard__error" data-error="reminder"></div></div>
+      <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div></div>
+      <div class="wizard__nav"><button class="wizard__nav-btn wizard__nav-back" type="button">{t.nav.back}</button><button class="wizard__nav-btn wizard__nav-next btn" type="button">{t.nav.next}</button></div>
+    </div>
+
+    <!-- FAMILY WIZARD -->
+    <div class="wizard" id="wizard-family" data-package="family" role="tabpanel" aria-labelledby="tab-family" style="display:none;">
+      <div class="wizard__intro"><h2>{t.family.title}</h2><p>{t.family.desc}</p></div>
+      <div class="wizard__progress" data-steps="8"><div class="wizard__progress-bar"><div class="wizard__progress-fill"></div></div><div class="wizard__steps-label"></div></div>
+      <div class="wizard__step" data-step="1"><h3 class="wizard__step-title">{t.size.title}</h3><p class="wizard__step-subtitle">{t.size.subtitle}</p><div class="wizard__options" data-field="size">{sizes.map(s=><button class="wizard__option" data-value={s}>{s}</button>)}</div><div class="wizard__error" data-error="size"></div></div>
+      <div class="wizard__step" data-step="2"><h3 class="wizard__step-title">{t.people.title}</h3><p class="wizard__step-subtitle">{t.people.subtitle}</p><div class="wizard__options wizard__options--grid" data-field="people">{familyPersons.map(p=><button class="wizard__option" data-value={String(p)}>{p} {t.people.persons}</button>)}</div><div class="wizard__error" data-error="people"></div></div>
+      <div class="wizard__step" data-step="3"><h3 class="wizard__step-title">{t.format.title}</h3><p class="wizard__step-subtitle">{t.format.subtitle}</p><div class="wizard__options" data-field="format"><button class="wizard__option" data-value="horizontal">{t.format.horizontal}</button><button class="wizard__option" data-value="vertical">{t.format.vertical}</button></div><div class="wizard__error" data-error="format"></div></div>
+      <div class="wizard__step" data-step="4"><h3 class="wizard__step-title">{t.picture.title}</h3><p class="wizard__step-subtitle">{t.picture.subtitle}</p><ul class="wizard__req-list"><li>{t.picture.req1}</li><li>{t.picture.req2}</li></ul><div class="wizard__dropzone" data-field="image"><input type="file" accept="image/png,image/jpeg" class="wizard__file-input" /><div class="wizard__dropzone-content"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>{t.picture.dropzone}</span><small>{t.picture.maxSize}</small></div><div class="wizard__preview" style="display:none;"><img class="wizard__preview-img" alt="Preview" /><button type="button" class="wizard__preview-change">{t.picture.changeImage}</button></div></div><div class="wizard__error" data-error="image"></div></div>
+      <div class="wizard__step" data-step="5"><h3 class="wizard__step-title">{t.shipping.title}</h3><p class="wizard__step-subtitle">{t.shipping.subtitle}</p><div class="wizard__options" data-field="shipping"><button class="wizard__option" data-value="switzerland">{t.shipping.switzerland}</button><button class="wizard__option" data-value="europe">{t.shipping.europe}</button><button class="wizard__option" data-value="worldwide">{t.shipping.worldwide}</button></div><div class="wizard__error" data-error="shipping"></div></div>
+      <div class="wizard__step" data-step="6"><h3 class="wizard__step-title">{t.contact.title}</h3><p class="wizard__step-subtitle">{t.contact.subtitle}</p><div class="wizard__form-grid"><div class="wizard__field"><label>{t.contact.firstName} *</label><input type="text" data-field="firstName" required /></div><div class="wizard__field"><label>{t.contact.lastName} *</label><input type="text" data-field="lastName" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.email} *</label><input type="email" data-field="email" required /></div><div class="wizard__field"><label>{t.contact.phone}</label><input type="tel" data-field="phone" /></div><div class="wizard__field"><label>{t.contact.country} *</label><input type="text" data-field="country" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.address} *</label><input type="text" data-field="address" required /></div><div class="wizard__field"><label>{t.contact.zip} *</label><input type="text" data-field="zip" required /></div><div class="wizard__field"><label>{t.contact.city} *</label><input type="text" data-field="city" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.message}</label><textarea data-field="message" rows="3"></textarea></div></div><div class="wizard__error" data-error="contact"></div></div>
+      <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.reminder.title}</h3><p class="wizard__step-subtitle">{t.reminder.subtitle}</p><label class="wizard__checkbox"><input type="checkbox" data-field="reminderAccepted" /><span>{t.reminder.accept}</span></label><div class="wizard__error" data-error="reminder"></div></div>
+      <div class="wizard__step" data-step="8"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div></div>
+      <div class="wizard__nav"><button class="wizard__nav-btn wizard__nav-back" type="button">{t.nav.back}</button><button class="wizard__nav-btn wizard__nav-next btn" type="button">{t.nav.next}</button></div>
+    </div>
+
+    <!-- CREATIVE WIZARD -->
+    <div class="wizard" id="wizard-creative" data-package="creative" role="tabpanel" aria-labelledby="tab-creative" style="display:none;">
+      <div class="wizard__intro"><h2>{t.creative.title}</h2><p>{t.creative.desc}</p><p class="wizard__intro-note">{t.creative.includes}</p></div>
+      <div class="wizard__progress" data-steps="7"><div class="wizard__progress-bar"><div class="wizard__progress-fill"></div></div><div class="wizard__steps-label"></div></div>
+      <div class="wizard__step" data-step="1"><h3 class="wizard__step-title">{t.size.title}</h3><p class="wizard__step-subtitle">{t.size.subtitle}</p><div class="wizard__options" data-field="size">{sizes.map(s=><button class="wizard__option" data-value={s}>{s}</button>)}</div><div class="wizard__error" data-error="size"></div></div>
+      <div class="wizard__step" data-step="2"><h3 class="wizard__step-title">{t.people.title}</h3><p class="wizard__step-subtitle">{t.people.subtitle}</p><div class="wizard__options" data-field="people">{creativePersons.map(p=><button class="wizard__option" data-value={String(p)}>{p} {p===1?'Person':t.people.persons}</button>)}</div><div class="wizard__error" data-error="people"></div></div>
+      <div class="wizard__step" data-step="3"><h3 class="wizard__step-title">{t.idea.title}</h3><p class="wizard__step-subtitle">{t.idea.subtitle}</p><textarea class="wizard__textarea" data-field="idea" rows="5" placeholder={t.idea.placeholder}></textarea><label class="wizard__checkbox" style="margin-top:var(--space-md);"><input type="checkbox" data-field="noIdea" /><span>{t.idea.noIdea}</span></label></div>
+      <div class="wizard__step" data-step="4"><h3 class="wizard__step-title">{t.contact.title}</h3><p class="wizard__step-subtitle">{t.contact.subtitle}</p><div class="wizard__form-grid"><div class="wizard__field"><label>{t.contact.firstName} *</label><input type="text" data-field="firstName" required /></div><div class="wizard__field"><label>{t.contact.lastName} *</label><input type="text" data-field="lastName" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.email} *</label><input type="email" data-field="email" required /></div><div class="wizard__field"><label>{t.contact.phone}</label><input type="tel" data-field="phone" /></div><div class="wizard__field"><label>{t.contact.country} *</label><input type="text" data-field="country" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.address} *</label><input type="text" data-field="address" required /></div><div class="wizard__field"><label>{t.contact.zip} *</label><input type="text" data-field="zip" required /></div><div class="wizard__field"><label>{t.contact.city} *</label><input type="text" data-field="city" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.message}</label><textarea data-field="message" rows="3"></textarea></div></div><div class="wizard__error" data-error="contact"></div></div>
+      <div class="wizard__step" data-step="5"><h3 class="wizard__step-title">{t.shipping.title}</h3><p class="wizard__step-subtitle">{t.shipping.subtitle}</p><div class="wizard__options" data-field="shipping"><button class="wizard__option" data-value="switzerland">{t.shipping.switzerland}</button><button class="wizard__option" data-value="europe">{t.shipping.europe}</button><button class="wizard__option" data-value="worldwide">{t.shipping.worldwide}</button></div><div class="wizard__error" data-error="shipping"></div></div>
+      <div class="wizard__step" data-step="6"><h3 class="wizard__step-title">{t.reminder.title}</h3><p class="wizard__step-subtitle">{t.reminder.subtitle}</p><label class="wizard__checkbox"><input type="checkbox" data-field="reminderAccepted" /><span>{t.reminder.accept}</span></label><div class="wizard__error" data-error="reminder"></div></div>
+      <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div></div>
+      <div class="wizard__nav"><button class="wizard__nav-btn wizard__nav-back" type="button">{t.nav.back}</button><button class="wizard__nav-btn wizard__nav-next btn" type="button">{t.nav.next}</button></div>
+    </div>
+
+  </div>
+</section>
 </BaseLayout>
+
+<script is:inline define:vars={{ summaryLabels: t.summary, validationLabels: t.validation, navLabels: t.nav }}>
+const PACKAGING = 20;
+const SHIPPING = { switzerland: 12, europe: 34, worldwide: 80 };
+const CREATIVE_FIXED = 310;
+const P1_PRICES = { A3: 870, A2: 1750, A1: 3500, A0: 6500 };
+const P2_PRICES = {
+  A3:  { 2:1070, 3:1270, 4:1470, 5:1670, 6:2070, 7:2470, 8:2770, 9:3070, 10:3370 },
+  A2:  { 2:2140, 3:2340, 4:2540, 5:2740, 6:3140, 7:3540, 8:3840, 9:4140, 10:4440 },
+  A1:  { 2:4280, 3:4480, 4:4680, 5:4880, 6:5280, 7:5680, 8:5980, 9:6280, 10:6580 },
+  A0:  { 2:8500, 3:8700, 4:8900, 5:9100, 6:9500, 7:9900, 8:10200, 9:10500, 10:10800 },
+};
+const P3_PRICES = {
+  A3: { 1:870, 2:1070, 3:1270, 4:1470 },
+  A2: { 1:1750, 2:2140, 3:2340, 4:1680 },
+  A1: { 1:3500, 2:4280, 3:4480, 4:1890 },
+  A0: { 1:6500, 2:8500 },
+};
+const SHIPPING_LABELS = { switzerland: 'Schweiz', europe: 'Europa', worldwide: 'Weltweit' };
+const FORMAT_LABELS = { horizontal: 'Horizontal', vertical: 'Vertical' };
+const PKG_LABELS = { portrait: 'Portrait', family: 'Couple / Family Portrait', creative: 'Creative Package' };
+function formatCHF(n) { return 'CHF ' + n.toLocaleString('de-CH'); }
+
+document.querySelectorAll('.wizard').forEach(wizardEl => {
+  const pkg = wizardEl.dataset.package;
+  const steps = wizardEl.querySelectorAll('.wizard__step');
+  const totalSteps = steps.length;
+  const progressFill = wizardEl.querySelector('.wizard__progress-fill');
+  const stepsLabel = wizardEl.querySelector('.wizard__steps-label');
+  const btnNext = wizardEl.querySelector('.wizard__nav-next');
+  const btnBack = wizardEl.querySelector('.wizard__nav-back');
+  let currentStep = 1;
+  let formData = {};
+  let uploadedFile = null;
+
+  function showStep(n) {
+    currentStep = n;
+    steps.forEach(s => s.style.display = parseInt(s.dataset.step) === n ? 'block' : 'none');
+    progressFill.style.width = ((n / totalSteps) * 100) + '%';
+    stepsLabel.textContent = n + ' / ' + totalSteps;
+    btnBack.style.visibility = n === 1 ? 'hidden' : 'visible';
+    if (n === totalSteps) { btnNext.textContent = summaryLabels.submit; buildSummary(); }
+    else { btnNext.textContent = navLabels.next; }
+    wizardEl.querySelectorAll('.wizard__error').forEach(e => e.textContent = '');
+  }
+
+  wizardEl.querySelectorAll('.wizard__options').forEach(group => {
+    const field = group.dataset.field;
+    group.querySelectorAll('.wizard__option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.wizard__option').forEach(b => b.classList.remove('is-selected'));
+        btn.classList.add('is-selected');
+        formData[field] = btn.dataset.value;
+      });
+    });
+  });
+
+  wizardEl.querySelectorAll('input[data-field], textarea[data-field]').forEach(input => {
+    const handler = () => { formData[input.dataset.field] = input.type === 'checkbox' ? input.checked : input.value; };
+    input.addEventListener('input', handler);
+    input.addEventListener('change', handler);
+  });
+
+  const dropzone = wizardEl.querySelector('.wizard__dropzone');
+  if (dropzone) {
+    const fileInput = dropzone.querySelector('.wizard__file-input');
+    const content = dropzone.querySelector('.wizard__dropzone-content');
+    const preview = dropzone.querySelector('.wizard__preview');
+    const previewImg = dropzone.querySelector('.wizard__preview-img');
+    const changeBtn = dropzone.querySelector('.wizard__preview-change');
+    dropzone.addEventListener('click', (e) => { if (e.target === changeBtn || e.target.closest('.wizard__preview-change')) fileInput.click(); else if (!uploadedFile) fileInput.click(); });
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
+    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('is-dragover'); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+    if (changeBtn) changeBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+    function handleFile(file) {
+      if (!file.type.match(/^image\/(png|jpeg)$/)) return;
+      if (file.size > 20 * 1024 * 1024) return;
+      uploadedFile = file; formData.image = file.name;
+      const reader = new FileReader();
+      reader.onload = (e) => { previewImg.src = e.target.result; content.style.display = 'none'; preview.style.display = 'flex'; };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function validateStep() {
+    const step = wizardEl.querySelector(`.wizard__step[data-step="${currentStep}"]`);
+    const optionGroup = step.querySelector('.wizard__options');
+    if (optionGroup) { const field = optionGroup.dataset.field; if (!formData[field]) { showError(field, validationLabels.selectOption); return false; } }
+    const requiredInputs = step.querySelectorAll('input[required]');
+    for (const input of requiredInputs) {
+      if (!input.value.trim()) { showError('contact', validationLabels.required); input.focus(); return false; }
+      if (input.type === 'email' && !input.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) { showError('contact', validationLabels.email); input.focus(); return false; }
+    }
+    const reminderCheck = step.querySelector('input[data-field="reminderAccepted"]');
+    if (reminderCheck && !reminderCheck.checked) { showError('reminder', validationLabels.reminder); return false; }
+    return true;
+  }
+  function showError(field, msg) { const e = wizardEl.querySelector(`[data-error="${field}"]`); if (e) e.textContent = msg; }
+
+  function calcPrice() {
+    const size = formData.size, shipping = formData.shipping;
+    if (!size || !shipping) return null;
+    let drawing = 0, creative = 0;
+    if (pkg === 'portrait') drawing = P1_PRICES[size] || 0;
+    else if (pkg === 'family') { drawing = P2_PRICES[size]?.[parseInt(formData.people)] || 0; }
+    else if (pkg === 'creative') { drawing = P3_PRICES[size]?.[parseInt(formData.people)] || 0; creative = CREATIVE_FIXED; }
+    const ship = SHIPPING[shipping] || 0;
+    return { drawing, creative, packaging: PACKAGING, shipping: ship, total: drawing + creative + PACKAGING + ship };
+  }
+
+  function buildSummary() {
+    const s = wizardEl.querySelector('.wizard__summary'), price = calcPrice();
+    let h = '<div class="summary"><div class="summary__section">';
+    h += row(summaryLabels.package, PKG_LABELS[pkg]);
+    h += row(summaryLabels.size, formData.size || '—');
+    if (formData.format) h += row(summaryLabels.format, FORMAT_LABELS[formData.format] || formData.format);
+    if (formData.people) h += row(summaryLabels.people, formData.people);
+    if (formData.shipping) h += row(summaryLabels.shipping, SHIPPING_LABELS[formData.shipping] || formData.shipping);
+    if (formData.idea) h += row(summaryLabels.idea, formData.idea);
+    if (formData.image) h += row(summaryLabels.image, '✓ ' + formData.image);
+    h += '</div><div class="summary__section"><h4>' + summaryLabels.name + '</h4>';
+    h += '<p>' + (formData.firstName||'') + ' ' + (formData.lastName||'') + '</p>';
+    h += '<p>' + (formData.email||'') + '</p>';
+    if (formData.phone) h += '<p>' + formData.phone + '</p>';
+    h += '<p>' + (formData.address||'') + ', ' + (formData.zip||'') + ' ' + (formData.city||'') + '</p>';
+    if (formData.country) h += '<p>' + formData.country + '</p>';
+    h += '</div>';
+    if (price) {
+      h += '<div class="summary__section summary__pricing"><h4>' + summaryLabels.pricing + '</h4>';
+      h += priceRow(summaryLabels.drawing, price.drawing);
+      if (price.creative > 0) h += priceRow(summaryLabels.creativePackage, price.creative);
+      h += priceRow(summaryLabels.packaging, price.packaging);
+      h += priceRow(summaryLabels.shippingCost, price.shipping);
+      h += '<div class="summary__total">' + priceRow(summaryLabels.total, price.total) + '</div></div>';
+    }
+    h += '</div>'; s.innerHTML = h;
+  }
+  function row(l, v) { return '<div class="summary__row"><span class="summary__label">' + l + '</span><span class="summary__value">' + v + '</span></div>'; }
+  function priceRow(l, a) { return '<div class="summary__row"><span class="summary__label">' + l + '</span><span class="summary__value">' + formatCHF(a) + '</span></div>'; }
+
+  async function handleSubmit() {
+    btnNext.textContent = summaryLabels.submitting; btnNext.disabled = true;
+    try {
+      await new Promise(r => setTimeout(r, 1500));
+      wizardEl.querySelector('.wizard__summary').innerHTML = `<div class="wizard__success"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><h3>${summaryLabels.successTitle}</h3><p>${summaryLabels.successMsg}</p></div>`;
+      wizardEl.querySelector('.wizard__nav').style.display = 'none';
+    } catch (err) { alert(summaryLabels.errorMsg); btnNext.textContent = summaryLabels.submit; btnNext.disabled = false; }
+  }
+
+  btnNext.addEventListener('click', () => { if (currentStep === totalSteps) { handleSubmit(); return; } if (validateStep()) showStep(currentStep + 1); });
+  btnBack.addEventListener('click', () => { if (currentStep > 1) showStep(currentStep - 1); });
+  showStep(1);
+});
+
+document.querySelectorAll('.cd-tabs__btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.cd-tabs__btn').forEach(b => { b.classList.remove('is-active'); b.setAttribute('aria-selected', 'false'); });
+    btn.classList.add('is-active'); btn.setAttribute('aria-selected', 'true');
+    document.querySelectorAll('.wizard').forEach(w => { w.style.display = w.id === 'wizard-' + tab ? 'block' : 'none'; });
+  });
+});
+const hash = window.location.hash.replace('#', '');
+if (hash && document.getElementById('wizard-' + hash)) document.querySelector(`[data-tab="${hash}"]`)?.click();
+</script>
+
+<style>
+  .cd-page{padding-top:calc(var(--header-height) + var(--space-3xl));padding-bottom:var(--space-4xl)}.cd-page__header{text-align:center;margin-bottom:var(--space-2xl)}.cd-page__title{font-family:var(--font-heading);font-size:var(--text-4xl);font-weight:300;letter-spacing:.05em}.cd-page__subtitle{color:var(--color-text-secondary);margin-top:var(--space-md);margin-inline:auto}.cd-tabs{display:flex;justify-content:center;gap:var(--space-xs);margin-bottom:var(--space-3xl);border-bottom:1px solid var(--color-border);padding-bottom:0}.cd-tabs__btn{padding:var(--space-md) var(--space-xl);background:0 0;border:none;cursor:pointer;font-family:var(--font-body);font-size:var(--text-sm);font-weight:400;letter-spacing:.04em;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all var(--transition-fast)}.cd-tabs__btn:hover{color:var(--color-text)}.cd-tabs__btn.is-active{color:var(--color-black);border-bottom-color:var(--color-black)}.wizard{max-width:640px;margin-inline:auto}.wizard__intro{text-align:center;margin-bottom:var(--space-2xl)}.wizard__intro h2{font-family:var(--font-heading);font-size:var(--text-3xl);font-weight:400;margin-bottom:var(--space-md)}.wizard__intro p{color:var(--color-text-secondary);margin-inline:auto;font-size:var(--text-sm);line-height:1.7}.wizard__intro-note{font-weight:500;color:var(--color-text)!important;margin-top:var(--space-sm)!important;font-size:var(--text-xs)!important;letter-spacing:.04em}.wizard__progress{margin-bottom:var(--space-2xl)}.wizard__progress-bar{height:2px;background:var(--color-gray-200);border-radius:2px;overflow:hidden}.wizard__progress-fill{height:100%;background:var(--color-black);transition:width var(--transition-base);width:0}.wizard__steps-label{text-align:center;font-size:var(--text-xs);color:var(--color-text-muted);margin-top:var(--space-sm);letter-spacing:.08em}.wizard__step{display:none;animation:fadeIn .3s ease}.wizard__step[data-step="1"]{display:block}.wizard__step-title{font-family:var(--font-heading);font-size:var(--text-2xl);font-weight:400;margin-bottom:var(--space-sm)}.wizard__step-subtitle{font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--space-xl)}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.wizard__options{display:flex;gap:var(--space-md);flex-wrap:wrap}.wizard__options--grid{display:grid;grid-template-columns:repeat(3,1fr)}.wizard__option{flex:1;min-width:120px;padding:var(--space-lg) var(--space-xl);border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-white);cursor:pointer;font-family:var(--font-body);font-size:var(--text-base);font-weight:400;text-align:center;transition:all var(--transition-fast)}.wizard__option:hover{border-color:var(--color-gray-400)}.wizard__option.is-selected{border-color:var(--color-black);background:var(--color-black);color:var(--color-white)}.wizard__req-list{margin-bottom:var(--space-lg);padding-left:var(--space-lg)}.wizard__req-list li{font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--space-xs);list-style:disc}.wizard__dropzone{border:2px dashed var(--color-border);border-radius:var(--radius-md);padding:var(--space-2xl);text-align:center;cursor:pointer;transition:all var(--transition-fast);position:relative}.wizard__dropzone:hover,.wizard__dropzone.is-dragover{border-color:var(--color-black);background:var(--color-gray-50)}.wizard__dropzone-content{display:flex;flex-direction:column;align-items:center;gap:var(--space-md);color:var(--color-text-muted)}.wizard__dropzone-content span{font-size:var(--text-sm)}.wizard__dropzone-content small{font-size:var(--text-xs)}.wizard__file-input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:-1}.wizard__preview{display:flex;flex-direction:column;align-items:center;gap:var(--space-md)}.wizard__preview-img{max-height:200px;max-width:100%;border-radius:var(--radius-sm);object-fit:contain}.wizard__preview-change{background:0 0;border:1px solid var(--color-border);padding:var(--space-xs) var(--space-md);font-size:var(--text-xs);border-radius:var(--radius-sm);cursor:pointer;transition:all var(--transition-fast)}.wizard__preview-change:hover{border-color:var(--color-black)}.wizard__form-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)}.wizard__field--full{grid-column:1/-1}.wizard__field label{display:block;font-size:var(--text-xs);font-weight:500;letter-spacing:.04em;color:var(--color-text-secondary);margin-bottom:var(--space-xs);text-transform:uppercase}.wizard__field input,.wizard__field textarea{width:100%;padding:var(--space-md);border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:var(--text-base);transition:border-color var(--transition-fast);background:var(--color-white)}.wizard__field input:focus,.wizard__field textarea:focus{outline:0;border-color:var(--color-black)}.wizard__textarea{width:100%;padding:var(--space-md);border:1px solid var(--color-border);border-radius:var(--radius-sm);font-size:var(--text-base);font-family:var(--font-body);resize:vertical;transition:border-color var(--transition-fast)}.wizard__textarea:focus{outline:0;border-color:var(--color-black)}.wizard__checkbox{display:flex;align-items:flex-start;gap:var(--space-md);cursor:pointer;padding:var(--space-lg);border:1px solid var(--color-border);border-radius:var(--radius-md)}.wizard__checkbox input{margin-top:3px;accent-color:var(--color-black)}.wizard__checkbox span{font-size:var(--text-sm);color:var(--color-text-secondary);line-height:1.5}.wizard__error{color:#b91c1c;font-size:var(--text-xs);margin-top:var(--space-sm);min-height:1.2em}.wizard__nav{display:flex;justify-content:space-between;margin-top:var(--space-2xl);padding-top:var(--space-xl);border-top:1px solid var(--color-border)}.wizard__nav-back{background:0 0;border:none;cursor:pointer;font-size:var(--text-sm);color:var(--color-text-secondary);padding:var(--space-md) var(--space-xl);transition:color var(--transition-fast)}.wizard__nav-back:hover{color:var(--color-text)}.summary{display:flex;flex-direction:column;gap:var(--space-xl)}.summary__section{padding:var(--space-lg);background:var(--color-gray-50);border-radius:var(--radius-md)}.summary__section h4{font-family:var(--font-body);font-size:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-muted);margin-bottom:var(--space-md)}.summary__section p{font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--space-xs);max-width:none}.summary__row{display:flex;justify-content:space-between;padding:var(--space-sm) 0;border-bottom:1px solid var(--color-gray-200)}.summary__row:last-child{border-bottom:none}.summary__label{font-size:var(--text-sm);color:var(--color-text-secondary)}.summary__value{font-size:var(--text-sm);font-weight:500;color:var(--color-text)}.summary__pricing .summary__total{margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:2px solid var(--color-black)}.summary__pricing .summary__total .summary__label,.summary__pricing .summary__total .summary__value{font-weight:700;font-size:var(--text-base);color:var(--color-black)}.wizard__success{text-align:center;padding:var(--space-3xl) var(--space-xl)}.wizard__success svg{color:#16a34a;margin-bottom:var(--space-lg)}.wizard__success h3{font-family:var(--font-heading);font-size:var(--text-2xl);margin-bottom:var(--space-md)}.wizard__success p{color:var(--color-text-secondary);font-size:var(--text-sm);margin-inline:auto}@media (max-width:768px){.cd-tabs{overflow-x:auto;justify-content:flex-start}.cd-tabs__btn{padding:var(--space-sm) var(--space-md);font-size:var(--text-xs);white-space:nowrap}.wizard__options--grid{grid-template-columns:repeat(2,1fr)}.wizard__form-grid{grid-template-columns:1fr}.wizard__field--full{grid-column:1}.wizard__option{min-width:80px;padding:var(--space-md)}}
+</style>

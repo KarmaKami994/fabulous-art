@@ -1,7 +1,17 @@
 export const customDrawingTranslations = {
   de: {
     pageTitle: 'Custom Drawing',
-    pageDesc: 'Wähle dein Paket und konfiguriere deine individuelle Auftragszeichnung.',
+    pageDesc: 'Individuelle Kunst, ein einzigartiges Stück nur für dich..',
+    pageIntro: 'Ob du ein Portrait von dir oder einem geliebten Menschen suchst, ein besonderes Haustier, ein sentimentales Geschenk für einen besonderen Anlass oder ein Erinnerungsportrait — ich bin hier, um es zum Leben zu erwecken. Ich stelle sicher, dass du nicht nur begeistert, sondern absolut überwältigt von deinem fertigen Portrait bist. Mit den hochwertigsten und professionellsten Materialien schaffe ich deine Zeichnung und liefere dir ein Portrait, das ein Leben lang Freude bereitet.',
+    promiseTitle: 'Mein Versprechen an dich:',
+    promises: [
+      'Hochwertigste Materialien für deine Zeichnung.',
+      'Professioneller und freundlicher Service von Anfang bis Ende, mit regelmässiger Kommunikation und Fortschritts-Updates.',
+      '100% Zufriedenheitsgarantie — dein Portrait wird erst versendet, wenn du es freigegeben hast.',
+      'Signiertes Echtheitszertifikat.',
+      'Weltweiter Versand.',
+      'Ein Portrait, das ein Leben lang hält.',
+    ],
     tabs: {
       portrait: 'Portrait',
       family: 'Couple / Family',
@@ -128,7 +138,17 @@ export const customDrawingTranslations = {
   },
   en: {
     pageTitle: 'Custom Drawing',
-    pageDesc: 'Choose your package and configure your custom drawing commission.',
+    pageDesc: 'Custom artwork, a special piece made for you..',
+    pageIntro: 'Whether you are looking for a portrait of your loved one, a special pet, a sentimental gift for a special occasion or a memorial portrait, I am here to bring it to life for you. I will ensure you are not only delighted but completely blown away by your finished portrait. Using the highest quality and professional mediums to create your drawing, I will deliver you a portrait that will last a lifetime of happiness.',
+    promiseTitle: 'My Promise to you:',
+    promises: [
+      'The highest quality materials used to create your drawing.',
+      'Professional and friendly service from start to finish, with regular communication and progress updates.',
+      '100% satisfaction guaranteed, your portrait will not be shipped until it has been approved by you.',
+      'Signed Certificate of Authenticity.',
+      'Worldwide shipping.',
+      'A portrait that will last a lifetime.',
+    ],
     tabs: {
       portrait: 'Portrait',
       family: 'Couple / Family',

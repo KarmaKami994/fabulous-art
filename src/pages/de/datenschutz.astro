@@ -1,13 +1,169 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 const locale = 'de';
-const pageTitle = 'Datenschutz';
+const pageTitle = 'Datenschutzerklärung';
 ---
-<BaseLayout title={pageTitle} locale={locale}>
-  <section class="section" style="padding-top: calc(var(--header-height) + var(--space-4xl));">
-    <div class="container">
-      <h1>{pageTitle}</h1>
-      <p style="margin-top: var(--space-lg); color: var(--color-text-secondary);">Diese Seite wird noch aufgebaut.</p>
+
+<BaseLayout title={pageTitle} locale={locale} description="Datenschutzerklärung von FabulousArt – Fabienne Meyer, Zürich.">
+
+  <section class="legal-page">
+    <div class="container container--narrow">
+      <h1 class="legal-page__title">{pageTitle}</h1>
+      <p class="legal-page__updated">Letzte Aktualisierung: Februar 2026</p>
+
+      <div class="legal-page__content">
+
+        <h2>1. Verantwortliche Stelle</h2>
+        <p>
+          Fabienne Meyer<br />
+          FabulousArt<br />
+          Zürich, Schweiz<br />
+          E-Mail: info.fabulousart@gmail.com
+        </p>
+
+        <h2>2. Übersicht</h2>
+        <p>
+          Der Schutz Ihrer persönlichen Daten ist mir sehr wichtig. In dieser Datenschutzerklärung
+          informiere ich Sie darüber, welche personenbezogenen Daten ich im Zusammenhang mit meiner
+          Website fabulous-art.ch erhebe, verarbeite und nutze.
+        </p>
+
+        <h2>3. Hosting und Content Delivery</h2>
+        <p>
+          Diese Website wird über <strong>Cloudflare Pages</strong> gehostet. Beim Besuch der Website
+          werden automatisch technische Daten wie Ihre IP-Adresse, Browsertyp, Betriebssystem,
+          Referrer-URL und Zeitpunkt des Zugriffs durch Cloudflare erfasst. Dies ist technisch
+          notwendig, um die Website bereitzustellen und die Sicherheit zu gewährleisten.
+        </p>
+        <p>
+          Cloudflare kann Daten in die USA übertragen. Cloudflare ist unter dem EU-US Data Privacy
+          Framework zertifiziert. Weitere Informationen finden Sie in der
+          <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von Cloudflare</a>.
+        </p>
+
+        <h2>4. Datei-Uploads (Auftragszeichnungen)</h2>
+        <p>
+          Wenn Sie über das Auftragsformular Referenzbilder hochladen, werden diese in
+          <strong>Cloudflare R2</strong> gespeichert. Die hochgeladenen Dateien werden ausschliesslich
+          für die Bearbeitung Ihres Auftrags verwendet und nach Abschluss gelöscht. Die Speicherung
+          erfolgt auf Servern von Cloudflare.
+        </p>
+
+        <h2>5. Kontaktformular und E-Mail</h2>
+        <p>
+          Wenn Sie das Kontakt- oder Auftragsformular nutzen, werden Ihre Angaben (Name, E-Mail-Adresse,
+          Nachricht sowie allfällige Auftragsdaten) per <strong>Mailjet</strong> an mich übermittelt.
+          Die Verarbeitung erfolgt zum Zweck der Beantwortung Ihrer Anfrage bzw. der Auftragsbearbeitung.
+        </p>
+        <p>
+          Mailjet speichert und verarbeitet Daten auf Servern in der EU. Weitere Informationen finden
+          Sie in der
+          <a href="https://www.mailjet.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von Mailjet</a>.
+        </p>
+
+        <h2>6. Google Fonts</h2>
+        <p>
+          Diese Website verwendet Schriftarten von <strong>Google Fonts</strong>. Beim Laden der Seite
+          stellt Ihr Browser eine Verbindung zu Servern von Google her, wobei Ihre IP-Adresse an Google
+          übermittelt wird. Weitere Informationen finden Sie in der
+          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von Google</a>.
+        </p>
+
+        <h2>7. Cookies</h2>
+        <p>
+          Diese Website verwendet keine eigenen Cookies zu Tracking- oder Marketingzwecken.
+          Technisch notwendige Cookies können durch den Hosting-Provider Cloudflare gesetzt werden,
+          um die Sicherheit und Funktionalität der Website zu gewährleisten.
+        </p>
+
+        <h2>8. Ihre Rechte</h2>
+        <p>
+          Gemäss dem Schweizer Datenschutzgesetz (DSG) und, sofern anwendbar, der
+          EU-Datenschutz-Grundverordnung (DSGVO) haben Sie folgende Rechte:
+        </p>
+        <p>
+          Auskunftsrecht über Ihre gespeicherten Daten, Recht auf Berichtigung unrichtiger Daten,
+          Recht auf Löschung Ihrer Daten, Recht auf Einschränkung der Verarbeitung,
+          Recht auf Datenübertragbarkeit sowie Widerspruchsrecht gegen die Verarbeitung.
+        </p>
+        <p>
+          Zur Ausübung Ihrer Rechte kontaktieren Sie mich bitte unter: info.fabulousart@gmail.com
+        </p>
+
+        <h2>9. Änderungen</h2>
+        <p>
+          Ich behalte mir vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an
+          veränderte rechtliche Anforderungen oder Änderungen meiner Dienstleistungen anzupassen.
+          Es gilt jeweils die aktuelle Version auf dieser Website.
+        </p>
+
+      </div>
     </div>
   </section>
+
 </BaseLayout>
+
+<style>
+  .legal-page {
+    padding-top: calc(var(--header-height) + var(--space-4xl));
+    padding-bottom: var(--space-5xl);
+  }
+
+  .legal-page__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-4xl);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    margin-bottom: var(--space-sm);
+  }
+
+  .legal-page__updated {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3xl);
+    max-width: none;
+  }
+
+  .legal-page__content h2 {
+    font-family: var(--font-heading);
+    font-size: var(--text-xl);
+    font-weight: 400;
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-md);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .legal-page__content h2:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  .legal-page__content p {
+    color: var(--color-gray-600);
+    line-height: 1.8;
+    margin-bottom: var(--space-md);
+    max-width: 65ch;
+  }
+
+  .legal-page__content p:last-child {
+    margin-bottom: 0;
+  }
+
+  .legal-page__content a {
+    color: var(--color-black);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color var(--transition-fast);
+  }
+
+  .legal-page__content a:hover {
+    color: var(--color-gray-600);
+  }
+
+  .legal-page__content strong {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+</style>

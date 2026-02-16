@@ -248,10 +248,31 @@ document.querySelectorAll('.wizard').forEach(wizardEl => {
   async function handleSubmit() {
     btnNext.textContent = summaryLabels.submitting; btnNext.disabled = true;
     try {
-      await new Promise(r => setTimeout(r, 1500));
+      const body = new FormData();
+      // Order data
+      body.append('package', pkg);
+      const fieldsToCopy = ['size', 'format', 'people', 'shipping', 'idea', 'firstName', 'lastName', 'email', 'phone', 'address', 'zip', 'city', 'country'];
+      fieldsToCopy.forEach(f => { if (formData[f]) body.append(f, formData[f]); });
+      body.append('locale', 'en');
+      // Prices
+      const price = calcPrice();
+      if (price) {
+        body.append('drawingPrice', String(price.drawing));
+        body.append('creativePrice', String(price.creative));
+        body.append('packagingPrice', String(price.packaging));
+        body.append('shippingPrice', String(price.shipping));
+        body.append('totalPrice', String(price.total));
+      }
+      // Image
+      if (uploadedFile) body.append('image', uploadedFile);
+
+      const res = await fetch('/api/order', { method: 'POST', body });
+      const result = await res.json();
+      if (!res.ok || !result.success) throw new Error(result.error || 'Unknown error');
+
       wizardEl.querySelector('.wizard__summary').innerHTML = `<div class="wizard__success"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><h3>${summaryLabels.successTitle}</h3><p>${summaryLabels.successMsg}</p></div>`;
       wizardEl.querySelector('.wizard__nav').style.display = 'none';
-    } catch (err) { alert(summaryLabels.errorMsg); btnNext.textContent = summaryLabels.submit; btnNext.disabled = false; }
+    } catch (err) { console.error('Submit error:', err); alert(summaryLabels.errorMsg); btnNext.textContent = summaryLabels.submit; btnNext.disabled = false; }
   }
 
   btnNext.addEventListener('click', () => { if (currentStep === totalSteps) { handleSubmit(); return; } if (validateStep()) showStep(currentStep + 1); });

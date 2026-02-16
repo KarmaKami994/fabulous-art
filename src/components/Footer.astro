@@ -26,7 +26,7 @@ const { locale } = Astro.props;
         <a href={`mailto:${t(locale, 'footer.email')}`} class="footer__link">
           {t(locale, 'footer.email')}
         </a>
-        <a href={getLocalizedPath('/datenschutz', locale)} class="footer__link">
+        <a href={locale === 'de' ? '/de/datenschutz' : '/en/privacy'} class="footer__link">
           {t(locale, 'footer.privacy')}
         </a>
       </div>

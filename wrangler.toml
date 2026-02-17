@@ -1,19 +1,15 @@
 # FabulousArt — Cloudflare Pages Configuration
-# Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
-
 name = "fabulous-art"
 compatibility_date = "2024-12-01"
 pages_build_output_dir = "dist"
 
-# R2 Bucket Bindings
-# Bucket 1: Kunden-Uploads (Auftragsformular)
+# R2 Bucket Binding (Kunden-Uploads)
 [[r2_buckets]]
 binding = "ORDER_IMAGES"
 bucket_name = "fabulous-art-orders"
 
-# Environment Variables (im Cloudflare Dashboard unter Pages > Settings > Environment Variables setzen):
-# MAILJET_API_KEY       = "dein-mailjet-api-key"
-# MAILJET_SECRET_KEY    = "dein-mailjet-secret-key"
-# MAILJET_FROM_EMAIL    = "noreply@fabulous-art.ch"   (oder verified sender)
-# MAILJET_FROM_NAME     = "FabulousArt Website"
-# FABIENNE_EMAIL        = "info.fabulousart@gmail.com"
+# Environment Variables (nicht-sensible Werte)
+[vars]
+MAILJET_FROM_EMAIL = "info.fabulousart@gmail.com"
+MAILJET_FROM_NAME = "FabulousArt Website"
+FABIENNE_EMAIL = "info.fabulousart@gmail.com"

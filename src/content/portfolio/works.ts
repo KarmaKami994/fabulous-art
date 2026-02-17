@@ -13,6 +13,8 @@ export interface PortfolioWork {
   };
 }
 
+const R2_BASE = 'https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev';
+
 /**
  * Portfolio-Werke — hier neue Werke hinzufügen.
  * Bilder gehören in /public/images/portfolio/
@@ -22,12 +24,15 @@ export interface PortfolioWork {
  * - imageFull: Vollbild für die Detail-Seite (hohe Qualität)
  * - slug: URL-freundlicher Name (keine Leerzeichen, Umlaute etc.)
  */
+
+
+
 export const portfolioWorks: PortfolioWork[] = [
   {
     title: 'The dance of eternal threads',
     slug: 'The dance of eternal threads',
-    image: '/images/portfolio/Thumbnail/Thedanceofeternaltreads.png',       
-    imageFull: '/images/portfolio/FullSize/Thedanceofeternaltreads.png', 
+    image: '${R2_BASE}/portfolio/Thumbnail/Thedanceofeternaltreads.png',       
+    imageFull: '${R2_BASE}/portfolio/FullSize/Thedanceofeternaltreads.png', 
     size: '100 × 125 cm',
     medium: 'Charcoal on paper',
     year: 2025,
@@ -40,8 +45,8 @@ export const portfolioWorks: PortfolioWork[] = [
   {
     title: 'Fragile',
     slug: 'Fragile',
-    image: '/images/portfolio/Thumbnail/fragile.jpg',       
-    imageFull: '/images/portfolio/FullSize/fragile_full.png', 
+    image: '${R2_BASE}/portfolio/Thumbnail/fragile.jpg',       
+    imageFull: '${R2_BASE}/portfolio/FullSize/fragile_full.png', 
     size: '77 × 110.5 cm',
     medium: 'Charcoal on paper',
     year: 2024,

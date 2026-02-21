@@ -156,7 +156,7 @@ export const portfolioWorks: PortfolioWork[] = [
     title: 'Beauty Marks',
     slug: 'beauty-marks',
     image: `${R2_BASE}/portfolio/Thumbnail/Beautymarks.png`,
-    imageFull: `${R2_BASE}/portfolio/Fullsize/Beautymarks_full.png`,
+    imageFull: `${R2_BASE}/portfolio/Fullsize/Beautfymarks_full.png`,
     size: '30 × 42 cm',
     medium: 'Charcoal on paper',
     year: 2023,

@@ -23,7 +23,7 @@ const navItems = [
   <div class="header__inner container">
     <!-- Logo -->
     <a href={getLocalizedPath('/', locale)} class="header__logo" aria-label="FabulousArt Home">
-      <img src="/images/logo/Logo.svg" alt="FabulousArt" class="header__logo-img" />
+      <img src="/images/logo/logo.png" alt="FabulousArt" class="header__logo-img" />
     </a>
 
     <!-- Desktop Navigation -->
@@ -78,6 +78,7 @@ const navItems = [
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid transparent;
     transition: border-color var(--transition-base), background var(--transition-base);
+    overflow: visible;
   }
 
   .header.is-scrolled {
@@ -210,18 +211,22 @@ const navItems = [
     left: 0;
     right: 0;
     bottom: 0;
+    z-index: 99;
     background: var(--color-white);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: opacity var(--transition-base), visibility var(--transition-base);
+    overflow-y: auto;
   }
 
   .header__mobile.is-open {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
   }
 
   .header__mobile-nav {

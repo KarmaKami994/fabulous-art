@@ -9,13 +9,49 @@ interface Props {
   description?: string;
   locale: Locale;
   ogImage?: string;
+  ogType?: string;
+  jsonLd?: Record<string, any>;
 }
 
-const { title, description = 'Hyperrealistische Kohlezeichnungen von Fabienne Meyer, Zürich.', locale, ogImage } = Astro.props;
+const {
+  title,
+  description = 'Hyperrealistische Kohlezeichnungen von Fabienne Meyer, Zürich.',
+  locale,
+  ogImage,
+  ogType = 'website',
+  jsonLd,
+} = Astro.props;
+
+const siteUrl = Astro.site!.toString().replace(/\/$/, '');
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const alternateLocale = locale === 'de' ? 'en' : 'de';
 const alternatePath = Astro.url.pathname.replace(`/${locale}/`, `/${alternateLocale}/`);
 const alternateURL = new URL(alternatePath, Astro.site);
+const fullTitle = `${title} — FabulousArt`;
+
+// Default OG image (Fabienne's About photo)
+const defaultOgImage = `${siteUrl}/images/about/fabienne-meyer.png`;
+const resolvedOgImage = ogImage || defaultOgImage;
+
+// Default JSON-LD (Artist profile)
+const defaultJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Fabienne Meyer',
+  alternateName: 'FabulousArt',
+  url: siteUrl,
+  image: defaultOgImage,
+  jobTitle: 'Visual Artist',
+  description: 'Swiss hyperrealistic charcoal artist based in Zurich.',
+  birthDate: '1998',
+  birthPlace: { '@type': 'Place', name: 'Zurich, Switzerland' },
+  nationality: { '@type': 'Country', name: 'Switzerland' },
+  sameAs: [
+    'https://www.instagram.com/fabulousart_/',
+  ],
+};
+
+const structuredData = jsonLd || defaultJsonLd;
 ---
 
 <!DOCTYPE html>
@@ -26,9 +62,10 @@ const alternateURL = new URL(alternatePath, Astro.site);
     <meta name="generator" content={Astro.generator} />
 
     <!-- SEO -->
-    <title>{title} — FabulousArt</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
+    <meta name="author" content="Fabienne Meyer" />
 
     <!-- i18n -->
     <link rel="alternate" hreflang={locale} href={canonicalURL} />
@@ -36,19 +73,35 @@ const alternateURL = new URL(alternatePath, Astro.site);
     <link rel="alternate" hreflang="x-default" href={new URL('/de/', Astro.site!)} />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={`${title} — FabulousArt`} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={resolvedOgImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="FabulousArt" />
     <meta property="og:locale" content={locale === 'de' ? 'de_CH' : 'en_US'} />
+    <meta property="og:locale:alternate" content={locale === 'de' ? 'en_US' : 'de_CH'} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={resolvedOgImage} />
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-    <!-- Preconnect for Google Fonts (Platzhalter) -->
+    <!-- Preconnect for Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
 
   <body>

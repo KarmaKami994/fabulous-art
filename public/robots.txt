@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
+# Sitemap
 Sitemap: https://www.fabulous-art.ch/sitemap-index.xml
+
+# Block API endpoints
+Disallow: /api/

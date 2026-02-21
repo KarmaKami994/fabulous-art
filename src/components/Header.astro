@@ -52,18 +52,18 @@ const navItems = [
       </button>
     </div>
   </div>
-
-  <!-- Mobile Menu Overlay -->
-  <div class="header__mobile" id="mobile-menu" aria-hidden="true">
-    <nav class="header__mobile-nav">
-      {navItems.map((item) => (
-        <a href={item.href} class="header__mobile-link">
-          {item.label}
-        </a>
-      ))}
-    </nav>
-  </div>
 </header>
+
+<!-- Mobile Menu Overlay (OUTSIDE header to avoid clipping) -->
+<div class="mobile-overlay" id="mobile-menu" aria-hidden="true">
+  <nav class="mobile-overlay__nav">
+    {navItems.map((item) => (
+      <a href={item.href} class="mobile-overlay__link">
+        {item.label}
+      </a>
+    ))}
+  </nav>
+</div>
 
 <style>
   .header {
@@ -78,7 +78,6 @@ const navItems = [
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid transparent;
     transition: border-color var(--transition-base), background var(--transition-base);
-    overflow: visible;
   }
 
   .header.is-scrolled {
@@ -204,50 +203,6 @@ const navItems = [
     transform: translateY(-6.5px) rotate(-45deg);
   }
 
-  /* Mobile Menu */
-  .header__mobile {
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 99;
-    background: var(--color-white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity var(--transition-base), visibility var(--transition-base);
-    overflow-y: auto;
-  }
-
-  .header__mobile.is-open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-  }
-
-  .header__mobile-nav {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-2xl);
-  }
-
-  .header__mobile-link {
-    font-family: var(--font-heading);
-    font-size: var(--text-3xl);
-    font-weight: 300;
-    color: var(--color-text);
-    transition: color var(--transition-fast);
-  }
-
-  .header__mobile-link:hover {
-    color: var(--color-text-secondary);
-  }
-
   /* Responsive */
   @media (max-width: 768px) {
     .header__nav {
@@ -261,6 +216,53 @@ const navItems = [
     .header__logo-img {
       height: 36px;
     }
+  }
+</style>
+
+<!-- Mobile overlay uses is:global because it's outside the header scope -->
+<style is:global>
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 300ms ease, visibility 300ms ease;
+    padding-top: 80px;
+  }
+
+  .mobile-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .mobile-overlay__nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+  }
+
+  .mobile-overlay__link {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.8rem, 1.4rem + 2vw, 2.5rem);
+    font-weight: 300;
+    color: #171717;
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  .mobile-overlay__link:hover {
+    color: #737373;
   }
 </style>
 

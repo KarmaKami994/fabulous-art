@@ -2,7 +2,7 @@ export const customDrawingTranslations = {
   de: {
     pageTitle: 'Custom Drawing',
     pageDesc: 'Individuelle Kunst, ein einzigartiges Stück nur für dich..',
-    pageIntro: 'Ob du ein Portrait von dir oder einem geliebten Menschen suchst, ein besonderes Haustier, ein sentimentales Geschenk für einen besonderen Anlass oder ein Erinnerungsportrait — ich bin hier, um es zum Leben zu erwecken. Ich stelle sicher, dass du nicht nur begeistert, sondern absolut überwältigt von deinem fertigen Portrait bist. Mit den hochwertigsten und professionellsten Materialien schaffe ich deine Zeichnung und liefere dir ein Portrait, das ein Leben lang Freude bereitet.',
+    pageIntro: 'Vom klassischen Portrait bis zum emotionalen Erinnerungsstück. Ich erwecke deine Herzensprojekte auf Papier zum Leben. Mit höchster Präzision und professionellen Materialien garantiere ich dir ein Ergebnis, das dich überwältigen wird. Ein handgefertigtes Unikat, das für immer einen besonderen Platz in deinem Leben einnimmt.',
     promiseTitle: 'Mein Versprechen an dich:',
     promises: [
       'Hochwertigste Materialien für deine Zeichnung.',
@@ -139,7 +139,7 @@ export const customDrawingTranslations = {
   en: {
     pageTitle: 'Custom Drawing',
     pageDesc: 'Custom artwork, a special piece made for you..',
-    pageIntro: 'Whether you are looking for a portrait of your loved one, a special pet, a sentimental gift for a special occasion or a memorial portrait, I am here to bring it to life for you. I will ensure you are not only delighted but completely blown away by your finished portrait. Using the highest quality and professional mediums to create your drawing, I will deliver you a portrait that will last a lifetime of happiness.',
+    pageIntro: 'From traditional portraits to heartfelt mementos, I bring your vision to life. Using professional materials and the utmost  precision, I create art that inspires and overwhelms. Own a handcrafted unique piece that is made to stay  in your heart and home forever. ',
     promiseTitle: 'My Promise to you:',
     promises: [
       'The highest quality materials used to create your drawing.',

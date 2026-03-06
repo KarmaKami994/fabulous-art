@@ -131,8 +131,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const locale = orderData.locale || 'de';
     const emailHtml = buildEmailHtml(orderData, imageName, imageUrl, locale);
     const emailText = buildEmailText(orderData, imageName, locale);
+    const confirmHtml = buildCustomerConfirmationHtml(orderData, locale);
+    const confirmText = buildCustomerConfirmationText(orderData, locale);
 
-    // --- Send email via Mailjet ---
+    // --- Send emails via Mailjet (both in one request) ---
+    const confirmSubject = locale === 'de'
+      ? 'Deine Anfrage bei FabulousArt — Bestätigung'
+      : 'Your FabulousArt inquiry — Confirmation';
+
     const mailjetResponse = await fetch('https://api.mailjet.com/v3.1/send', {
       method: 'POST',
       headers: {
@@ -141,10 +147,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       },
       body: JSON.stringify({
         Messages: [
+          // Message 1: Notification to Fabienne
           {
             From: {
               Email: env.MAILJET_FROM_EMAIL,
-              Name: env.MAILJET_FROM_NAME || 'FabulousArt Website',
+              Name: env.MAILJET_FROM_NAME || 'FabulousArt',
             },
             To: [
               {
@@ -158,6 +165,26 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             ReplyTo: {
               Email: orderData.email,
               Name: `${orderData.firstName} ${orderData.lastName}`,
+            },
+          },
+          // Message 2: Confirmation to customer
+          {
+            From: {
+              Email: env.MAILJET_FROM_EMAIL,
+              Name: 'Fabienne Meyer — FabulousArt',
+            },
+            To: [
+              {
+                Email: orderData.email,
+                Name: `${orderData.firstName} ${orderData.lastName}`,
+              },
+            ],
+            Subject: confirmSubject,
+            TextPart: confirmText,
+            HTMLPart: confirmHtml,
+            ReplyTo: {
+              Email: env.FABIENNE_EMAIL,
+              Name: 'Fabienne Meyer',
             },
           },
         ],
@@ -354,6 +381,171 @@ function buildEmailText(
   if (data.phone) text += `${data.phone}\n`;
   text += `${data.address}, ${data.zip} ${data.city}\n`;
   if (data.country) text += `${data.country}\n`;
+
+  return text;
+}
+
+// --- Customer Confirmation Email Templates ---
+
+function buildCustomerConfirmationHtml(
+  data: Record<string, string>,
+  locale: string
+): string {
+  const isDE = locale === 'de';
+
+  const packageLabels: Record<string, Record<string, string>> = {
+    de: { portrait: 'Portrait', family: 'Familien-Portrait', creative: 'Creative Package' },
+    en: { portrait: 'Portrait', family: 'Family Portrait', creative: 'Creative Package' },
+  };
+
+  const shippingLabels: Record<string, Record<string, string>> = {
+    de: { switzerland: 'Schweiz', europe: 'EU', worldwide: 'Weltweit' },
+    en: { switzerland: 'Switzerland', europe: 'EU', worldwide: 'Worldwide' },
+  };
+
+  const pkg = packageLabels[locale]?.[data.package] || data.package;
+  const ship = shippingLabels[locale]?.[data.shipping] || data.shipping;
+
+  const t = {
+    greeting: isDE
+      ? `Liebe/r ${data.firstName},`
+      : `Dear ${data.firstName},`,
+    thankYou: isDE
+      ? 'Vielen Dank für deine Anfrage! Ich freue mich sehr über dein Interesse an einer individuellen Zeichnung.'
+      : 'Thank you so much for your inquiry! I\'m thrilled about your interest in a custom drawing.',
+    received: isDE
+      ? 'Ich habe deine Anfrage erhalten und werde mich innerhalb von 2–3 Werktagen bei dir melden, um die Details zu besprechen.'
+      : 'I\'ve received your inquiry and will get back to you within 2–3 business days to discuss the details.',
+    summary: isDE ? 'Zusammenfassung deiner Anfrage' : 'Summary of your inquiry',
+    package: isDE ? 'Paket' : 'Package',
+    size: isDE ? 'Grösse' : 'Size',
+    people: isDE ? 'Personen' : 'People',
+    shipping: isDE ? 'Versand' : 'Shipping',
+    drawing: isDE ? 'Zeichnung' : 'Drawing',
+    packaging: isDE ? 'Verpackung' : 'Packaging',
+    total: isDE ? 'Geschätzter Gesamtpreis' : 'Estimated total',
+    idea: isDE ? 'Deine Idee' : 'Your idea',
+    image: isDE ? 'Referenzbild hochgeladen' : 'Reference image uploaded',
+    questions: isDE
+      ? 'Falls du Fragen hast, antworte einfach auf diese E-Mail — ich bin gerne für dich da.'
+      : 'If you have any questions, simply reply to this email — I\'m happy to help.',
+    closing: isDE ? 'Herzliche Grüsse,' : 'Warm regards,',
+    note: isDE
+      ? 'Dies ist eine automatische Bestätigung. Bitte beachte, dass die genannten Preise unverbindlich sind und im persönlichen Gespräch finalisiert werden.'
+      : 'This is an automated confirmation. Please note that the prices mentioned are non-binding and will be finalized during our personal consultation.',
+  };
+
+  return `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #171717; margin: 0; padding: 0; background: #f5f5f5; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; }
+    .header { background: #0a0a0a; color: #fff; padding: 40px 32px; text-align: center; }
+    .header h1 { font-size: 28px; font-weight: 300; letter-spacing: 0.15em; margin: 0; }
+    .header p { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #a3a3a3; margin: 12px 0 0; }
+    .body { padding: 40px 32px; }
+    .greeting { font-size: 16px; margin-bottom: 20px; }
+    .text { font-size: 14px; line-height: 1.7; color: #404040; margin-bottom: 16px; }
+    .summary-card { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin: 28px 0; }
+    .summary-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #737373; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    table td { padding: 8px 0; font-size: 14px; vertical-align: top; }
+    table td:first-child { color: #737373; width: 140px; }
+    table td:last-child { font-weight: 500; }
+    .total-row td { border-top: 2px solid #0a0a0a; font-size: 15px; font-weight: 600; padding-top: 14px; margin-top: 8px; }
+    .idea-box { background: #fff; border-left: 3px solid #0a0a0a; padding: 14px 16px; margin: 12px 0; font-style: italic; color: #525252; font-size: 14px; }
+    .closing { font-size: 14px; line-height: 1.7; color: #404040; margin-top: 28px; }
+    .signature { margin-top: 8px; font-weight: 500; font-size: 14px; }
+    .footer { padding: 24px 32px; background: #fafafa; border-top: 1px solid #e5e5e5; text-align: center; font-size: 11px; color: #a3a3a3; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>FabulousArt</h1>
+      <p>Hyperrealistic Charcoal Art</p>
+    </div>
+    <div class="body">
+      <p class="greeting">${t.greeting}</p>
+      <p class="text">${t.thankYou}</p>
+      <p class="text">${t.received}</p>
+
+      <div class="summary-card">
+        <div class="summary-title">${t.summary}</div>
+        <table>
+          <tr><td>${t.package}</td><td>${pkg}</td></tr>
+          <tr><td>${t.size}</td><td>${data.size || '—'}</td></tr>
+          ${data.people ? `<tr><td>${t.people}</td><td>${data.people}</td></tr>` : ''}
+          <tr><td>${t.shipping}</td><td>${ship}</td></tr>
+        </table>
+
+        ${data.totalPrice ? `
+        <table style="margin-top: 16px;">
+          <tr><td>${t.drawing}</td><td>CHF ${data.drawingPrice}</td></tr>
+          ${data.creativePrice && data.creativePrice !== '0' ? `<tr><td>Creative</td><td>CHF ${data.creativePrice}</td></tr>` : ''}
+          <tr><td>${t.packaging}</td><td>CHF ${data.packagingPrice || '20'}</td></tr>
+          <tr><td>${t.shipping}</td><td>CHF ${data.shippingPrice || '—'}</td></tr>
+          <tr class="total-row"><td>${t.total}</td><td>CHF ${data.totalPrice}</td></tr>
+        </table>
+        ` : ''}
+
+        ${data.idea ? `
+        <div style="margin-top: 16px;">
+          <div class="summary-title">${t.idea}</div>
+          <div class="idea-box">${data.idea.replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
+
+        ${data.image ? `<p style="font-size: 13px; color: #737373; margin-top: 12px;">📎 ${t.image}</p>` : ''}
+      </div>
+
+      <p class="text">${t.questions}</p>
+
+      <div class="closing">
+        <p>${t.closing}</p>
+        <p class="signature">Fabienne Meyer</p>
+        <p style="font-size: 13px; color: #737373;">FabulousArt — fabulous-art.ch</p>
+      </div>
+    </div>
+    <div class="footer">
+      ${t.note}<br><br>
+      FabulousArt &middot; Fabienne Meyer &middot; Zürich, Switzerland<br>
+      <a href="https://www.fabulous-art.ch" style="color: #737373;">www.fabulous-art.ch</a>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+}
+
+function buildCustomerConfirmationText(
+  data: Record<string, string>,
+  locale: string
+): string {
+  const isDE = locale === 'de';
+  const pkg = data.package;
+
+  let text = isDE
+    ? `Liebe/r ${data.firstName},\n\nVielen Dank für deine Anfrage bei FabulousArt!\n\n`
+    : `Dear ${data.firstName},\n\nThank you for your inquiry at FabulousArt!\n\n`;
+
+  text += isDE ? `ZUSAMMENFASSUNG\n${'-'.repeat(30)}\n` : `SUMMARY\n${'-'.repeat(30)}\n`;
+  text += `${isDE ? 'Paket' : 'Package'}: ${pkg}\n`;
+  text += `${isDE ? 'Grösse' : 'Size'}: ${data.size}\n`;
+  if (data.people) text += `${isDE ? 'Personen' : 'People'}: ${data.people}\n`;
+  text += `${isDE ? 'Versand' : 'Shipping'}: ${data.shipping}\n`;
+
+  if (data.totalPrice) {
+    text += `\n${isDE ? 'Geschätzter Gesamtpreis' : 'Estimated total'}: CHF ${data.totalPrice}\n`;
+  }
+
+  if (data.idea) text += `\n${isDE ? 'Deine Idee' : 'Your idea'}:\n${data.idea}\n`;
+
+  text += isDE
+    ? `\nIch werde mich innerhalb von 2–3 Werktagen bei dir melden.\n\nHerzliche Grüsse,\nFabienne Meyer\nFabulousArt — fabulous-art.ch`
+    : `\nI'll get back to you within 2–3 business days.\n\nWarm regards,\nFabienne Meyer\nFabulousArt — fabulous-art.ch`;
 
   return text;
 }

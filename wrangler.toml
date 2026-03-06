@@ -10,6 +10,6 @@ bucket_name = "fabulous-art-orders"
 
 # Environment Variables (nicht-sensible Werte)
 [vars]
-MAILJET_FROM_EMAIL = "info.fabulousart@gmail.com"
-MAILJET_FROM_NAME = "FabulousArt Website"
-FABIENNE_EMAIL = "info.fabulousart@gmail.com"
+MAILJET_FROM_EMAIL = "info@fabulous-art.ch"
+MAILJET_FROM_NAME = "FabulousArt"
+FABIENNE_EMAIL = "info@fabulous-art.ch"

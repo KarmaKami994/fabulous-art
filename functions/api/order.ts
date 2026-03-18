@@ -9,8 +9,8 @@
  *   MAILJET_API_KEY      — Mailjet Public Key
  *   MAILJET_SECRET_KEY   — Mailjet Secret Key
  *   MAILJET_FROM_EMAIL   — Absender-Email (z.B. noreply@fabulous-art.ch)
- *   MAILJET_FROM_NAME    — Absender-Name (z.B. "FabulousArt Website")
- *   FABIENNE_EMAIL       — Empfänger (info.fabulousart@gmail.com)
+ *   MAILJET_FROM_NAME    — Absender-Name (z.B. "FABulousART Website")
+ *   FABIENNE_EMAIL       — Empfänger (info.FABulousART@gmail.com)
  *
  * R2 Binding (in wrangler.toml / Cloudflare Dashboard):
  *   ORDER_IMAGES         — R2 Bucket Binding Name
@@ -136,8 +136,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // --- Send emails via Mailjet (both in one request) ---
     const confirmSubject = locale === 'de'
-      ? 'Deine Anfrage bei FabulousArt — Bestätigung'
-      : 'Your FabulousArt inquiry — Confirmation';
+      ? 'Deine Anfrage bei FABulousART — Bestätigung'
+      : 'Your FABulousART inquiry — Confirmation';
 
     const mailjetResponse = await fetch('https://api.mailjet.com/v3.1/send', {
       method: 'POST',
@@ -151,7 +151,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           {
             From: {
               Email: env.MAILJET_FROM_EMAIL,
-              Name: env.MAILJET_FROM_NAME || 'FabulousArt',
+              Name: env.MAILJET_FROM_NAME || 'FABulousART',
             },
             To: [
               {
@@ -171,7 +171,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           {
             From: {
               Email: env.MAILJET_FROM_EMAIL,
-              Name: 'Fabienne Meyer — FabulousArt',
+              Name: 'Fabienne Meyer — FABulousART',
             },
             To: [
               {
@@ -355,7 +355,7 @@ function buildEmailText(
   imageName: string | null,
   locale: string
 ): string {
-  let text = `NEUE BESTELLUNG — FabulousArt\n`;
+  let text = `NEUE BESTELLUNG — FABulousART\n`;
   text += `${'='.repeat(40)}\n\n`;
   text += `Paket: ${data.package}\n`;
   text += `Grösse: ${data.size}\n`;
@@ -465,7 +465,7 @@ function buildCustomerConfirmationHtml(
 <body>
   <div class="container">
     <div class="header">
-      <h1>FabulousArt</h1>
+      <h1>FABulousART</h1>
       <p>Hyperrealistic Charcoal Art</p>
     </div>
     <div class="body">
@@ -507,12 +507,12 @@ function buildCustomerConfirmationHtml(
       <div class="closing">
         <p>${t.closing}</p>
         <p class="signature">Fabienne Meyer</p>
-        <p style="font-size: 13px; color: #737373;">FabulousArt — fabulous-art.ch</p>
+        <p style="font-size: 13px; color: #737373;">FABulousART — fabulous-art.ch</p>
       </div>
     </div>
     <div class="footer">
       ${t.note}<br><br>
-      FabulousArt &middot; Fabienne Meyer &middot; Zürich, Switzerland<br>
+      FABulousART &middot; Fabienne Meyer &middot; Zürich, Switzerland<br>
       <a href="https://www.fabulous-art.ch" style="color: #737373;">www.fabulous-art.ch</a>
     </div>
   </div>
@@ -528,8 +528,8 @@ function buildCustomerConfirmationText(
   const pkg = data.package;
 
   let text = isDE
-    ? `Liebe/r ${data.firstName},\n\nVielen Dank für deine Anfrage bei FabulousArt!\n\n`
-    : `Dear ${data.firstName},\n\nThank you for your inquiry at FabulousArt!\n\n`;
+    ? `Liebe/r ${data.firstName},\n\nVielen Dank für deine Anfrage bei FABulousART!\n\n`
+    : `Dear ${data.firstName},\n\nThank you for your inquiry at FABulousART!\n\n`;
 
   text += isDE ? `ZUSAMMENFASSUNG\n${'-'.repeat(30)}\n` : `SUMMARY\n${'-'.repeat(30)}\n`;
   text += `${isDE ? 'Paket' : 'Package'}: ${pkg}\n`;
@@ -544,8 +544,8 @@ function buildCustomerConfirmationText(
   if (data.idea) text += `\n${isDE ? 'Deine Idee' : 'Your idea'}:\n${data.idea}\n`;
 
   text += isDE
-    ? `\nIch werde mich innerhalb von 2–3 Werktagen bei dir melden.\n\nHerzliche Grüsse,\nFabienne Meyer\nFabulousArt — fabulous-art.ch`
-    : `\nI'll get back to you within 2–3 business days.\n\nWarm regards,\nFabienne Meyer\nFabulousArt — fabulous-art.ch`;
+    ? `\nIch werde mich innerhalb von 2–3 Werktagen bei dir melden.\n\nHerzliche Grüsse,\nFabienne Meyer\nFABulousART — fabulous-art.ch`
+    : `\nI'll get back to you within 2–3 business days.\n\nWarm regards,\nFabienne Meyer\nFABulousART — fabulous-art.ch`;
 
   return text;
 }

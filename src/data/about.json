@@ -1,0 +1,45 @@
+{
+  "hero": {
+    "tagline_de": "Nachdenklich · Emotional · Atemberaubend",
+    "tagline_en": "Thoughtful · Emotional · Breathtaking"
+  },
+  "bio": {
+    "heading": "Fabienne Meyer",
+    "subheading_de": "Hyperrealistisch Zeichungen, wenn aus der Dunkelheit der Kohle, lebendiges Licht erwacht",
+    "subheading_en": "Hyperrealistic Drawings as an Expression of the Human Experience",
+    "paragraphs_de": [
+      "Als Zürcher Künstlerin hinter FABulousART nutze ich die Präzision des Hyperrealismus, um die Facetten der menschlichen Existenz zu erkunden. Meine Kohlezeichnungen sind mehr als nur Abbilder; sie sind Einladungen in emotionale Welten und schlagen eine tiefe Brücke zwischen dem Werk und dir als Betrachter:in.",
+      "Was meine Arbeit auszeichnet, ist das Spiel mit den Extremen: Mit dem ursprünglich dunklen Medium Kohle erschaffe ich leuchtendes Licht und makellose Weiss-Schattierungen.",
+      "Für mich ist die Kunst der ultimative Ausdruck meiner Freiheit. Meine Bilder sollen nicht nur ästhetisch fesseln, sondern als Katalysatoren für Reflexion und Dialog dienen. Ich lade die Betrachtenden ein, in diese immersiven Welten einzutauchen und ihre eigenen Erfahrungen in meinen Geschichten wiederzufinden."
+    ],
+    "paragraphs_en": [
+      "As the Zurich-based artist behind FABulousART, I harness the precision of hyperrealism to explore the facets of human existence. My charcoal drawings are more than just depictions; they are invitations into emotional worlds, building a deep bridge between the artwork and you as the viewer.",
+      "What distinguishes my work is the play with extremes: With the inherently dark medium of charcoal, I create luminous light and immaculate white shadings.",
+      "For me, art is the ultimate expression of my freedom. My images are meant not only to captivate aesthetically but to serve as catalysts for reflection and dialogue. I invite viewers to immerse themselves in these worlds and rediscover their own experiences within my stories."
+    ]
+  },
+  "career": {
+    "text_de": "Mit einem Hintergrund in IT und einer lebenslangen Leidenschaft für Kunst habe ich 2021 den Sprung gewagt und FABulousART gegründet. Seitdem wurden meine Werke international ausgestellt — von der Swiss Art Expo in Zürich über Art Basel Miami bis hin zur Van Gogh Gallery in Madrid.",
+    "text_en": "With a background in IT and a lifelong passion for art, I took the leap in 2021 to found FABulousART. Since then, my works have been exhibited internationally — from the Swiss Art Expo in Zurich to Art Basel Miami and the Van Gogh Gallery in Madrid."
+  },
+  "testimonials": [
+    {
+      "name": "Karim Moutiq",
+      "initial": "K",
+      "text_de": "«Vielen Dank, das Bild und die Arbeit, die Sie liefern, sind faszinierend und einzigartig. Fabi ist eine aussergewöhnliche und authentische Künstlerin, die ihr Handwerk meisterhaft beherrscht. Ich habe sehr gerne mit Ihnen zusammengearbeitet.»",
+      "text_en": "\"Thank you, the picture and the work you deliver are fascinating and unique. Fabi is an extraordinary and authentic artist who has mastered her craft. I really enjoyed working with you.\""
+    },
+    {
+      "name": "Ian Schneider",
+      "initial": "I",
+      "text_de": "«Die Qualität der Arbeit war fantastisch. Fabienne hat eine sehr klare Kommunikation und war stets offen für meine Wünsche. Das Endergebnis hat meine Erwartungen übertroffen.»",
+      "text_en": "\"The quality of work was fantastic. Fabienne has very clear communication and was always open to my requests. The end result exceeded my expectations.\""
+    },
+    {
+      "name": "Florence Polla",
+      "initial": "F",
+      "text_de": "«Ich bin absolut begeistert von meinem Portrait. Die Liebe zum Detail und die Emotionen, die Fabienne in ihre Arbeit einfliessen lässt, sind wirklich aussergewöhnlich. Ein Kunstwerk, das ich für immer schätzen werde.»",
+      "text_en": "\"I am absolutely delighted with my portrait. The attention to detail and the emotions Fabienne brings into her work are truly exceptional. A piece of art I will treasure forever.\""
+    }
+  ]
+}

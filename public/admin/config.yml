@@ -1,0 +1,265 @@
+backend:
+  name: github
+  repo: KarmaKami994/fabulous-art
+  branch: main
+
+# Store media in public folder (small files only — portfolio images stay on R2)
+media_folder: public/images/cms
+public_folder: /images/cms
+
+# Disable editorial workflow for simplicity (publish immediately)
+publish_mode: simple
+
+# Locale
+locale: de
+
+# Logo in admin
+logo_url: /images/logo/logo.png
+
+collections:
+  # ============================================
+  # PORTFOLIO WORKS
+  # ============================================
+  - name: portfolio
+    label: "Portfolio"
+    label_singular: "Werk"
+    description: "Portfolio-Werke verwalten. Bilder müssen manuell auf R2 hochgeladen werden."
+    file: src/data/portfolio.json
+    format: json
+    fields:
+      - label: "R2 Base URL"
+        name: r2_base
+        widget: string
+        hint: "Basis-URL für R2 Bilder (nicht ändern, es sei denn, du wechselst zu einer Custom Domain)"
+      - label: "Werke"
+        name: works
+        widget: list
+        summary: "{{fields.title}} ({{fields.year}}) {{fields.sold}}"
+        fields:
+          - { label: "Titel", name: title, widget: string }
+          - { label: "Slug (URL)", name: slug, widget: string, hint: "Kleinbuchstaben, Bindestriche, keine Leerzeichen. z.B. 'inside-the-box'" }
+          - { label: "Thumbnail (R2-Pfad)", name: thumbnail, widget: string, hint: "Pfad relativ zum R2 Bucket, z.B. 'portfolio/Thumbnail/MeinBild.jpg'" }
+          - { label: "Vollbild (R2-Pfad)", name: fullsize, widget: string, hint: "Pfad relativ zum R2 Bucket, z.B. 'portfolio/FullSize/MeinBild_full.png'" }
+          - { label: "Grösse", name: size, widget: string, hint: "z.B. '70 × 100 cm'" }
+          - { label: "Medium", name: medium, widget: string, default: "Charcoal on paper" }
+          - { label: "Jahr", name: year, widget: number, value_type: int }
+          - { label: "Preis", name: price, widget: string, hint: "z.B. CHF 8'500 — leer lassen wenn verkauft", required: false }
+          - { label: "Verkauft", name: sold, widget: boolean, default: false }
+          - { label: "Beschreibung (DE)", name: description_de, widget: text }
+          - { label: "Beschreibung (EN)", name: description_en, widget: text }
+
+  # ============================================
+  # CV / LEBENSLAUF
+  # ============================================
+  - name: cv
+    label: "CV / Lebenslauf"
+    file: src/data/cv.json
+    format: json
+    fields:
+      - label: "Auszeichnungen"
+        name: awards
+        widget: list
+        summary: "{{fields.year}} — {{fields.title}} ({{fields.badge}})"
+        fields:
+          - { label: "Jahr", name: year, widget: number, value_type: int }
+          - { label: "Auszeichnung", name: badge, widget: string, hint: "z.B. 'Honorable Mention', 'Best of Show'" }
+          - { label: "Titel", name: title, widget: string }
+          - { label: "Organisation", name: organization, widget: string }
+
+      - label: "Einzelausstellungen"
+        name: solo_exhibitions
+        widget: list
+        summary: "{{fields.year}} — {{fields.title}}"
+        fields:
+          - { label: "Jahr", name: year, widget: number, value_type: int }
+          - { label: "Titel", name: title, widget: string }
+          - { label: "Ort / Venue", name: venue, widget: string }
+          - { label: "Digital", name: digital, widget: boolean, default: false }
+
+      - label: "Gruppenausstellungen"
+        name: group_exhibitions
+        widget: list
+        summary: "{{fields.year}} — {{fields.title}}"
+        fields:
+          - { label: "Jahr", name: year, widget: number, value_type: int }
+          - { label: "Titel", name: title, widget: string }
+          - { label: "Ort / Venue", name: venue, widget: string }
+          - { label: "Digital", name: digital, widget: boolean, default: false }
+
+      - label: "Publikationen"
+        name: publishing
+        widget: list
+        summary: "{{fields.year}} — {{fields.title}}"
+        fields:
+          - { label: "Jahr", name: year, widget: number, value_type: int }
+          - { label: "Titel", name: title, widget: string }
+          - { label: "Beschreibung (DE)", name: description_de, widget: string }
+          - { label: "Beschreibung (EN)", name: description_en, widget: string }
+
+  # ============================================
+  # PRICING
+  # ============================================
+  - name: pricing
+    label: "Preise"
+    file: src/data/pricing.json
+    format: json
+    fields:
+      - { label: "Verpackung (CHF)", name: packaging, widget: number }
+      - label: "Versand"
+        name: shipping
+        widget: object
+        fields:
+          - { label: "Schweiz (CHF)", name: switzerland, widget: number }
+          - { label: "Europa (CHF)", name: europe, widget: number }
+          - { label: "Weltweit (CHF)", name: worldwide, widget: number }
+      - label: "Portrait (1 Person)"
+        name: portrait
+        widget: object
+        fields:
+          - { label: "A3", name: A3, widget: number }
+          - { label: "A2", name: A2, widget: number }
+          - { label: "A1", name: A1, widget: number }
+          - { label: "A0", name: A0, widget: number }
+      - label: "Family (2-10 Personen)"
+        name: family
+        widget: object
+        hint: "Preise pro Grösse und Personenanzahl"
+        fields:
+          - label: "A3"
+            name: A3
+            widget: object
+            fields:
+              - { label: "2P", name: "2", widget: number }
+              - { label: "3P", name: "3", widget: number }
+              - { label: "4P", name: "4", widget: number }
+              - { label: "5P", name: "5", widget: number }
+              - { label: "6P", name: "6", widget: number }
+              - { label: "7P", name: "7", widget: number }
+              - { label: "8P", name: "8", widget: number }
+              - { label: "9P", name: "9", widget: number }
+              - { label: "10P", name: "10", widget: number }
+          - label: "A2"
+            name: A2
+            widget: object
+            fields:
+              - { label: "2P", name: "2", widget: number }
+              - { label: "3P", name: "3", widget: number }
+              - { label: "4P", name: "4", widget: number }
+              - { label: "5P", name: "5", widget: number }
+              - { label: "6P", name: "6", widget: number }
+              - { label: "7P", name: "7", widget: number }
+              - { label: "8P", name: "8", widget: number }
+              - { label: "9P", name: "9", widget: number }
+              - { label: "10P", name: "10", widget: number }
+          - label: "A1"
+            name: A1
+            widget: object
+            fields:
+              - { label: "2P", name: "2", widget: number }
+              - { label: "3P", name: "3", widget: number }
+              - { label: "4P", name: "4", widget: number }
+              - { label: "5P", name: "5", widget: number }
+              - { label: "6P", name: "6", widget: number }
+              - { label: "7P", name: "7", widget: number }
+              - { label: "8P", name: "8", widget: number }
+              - { label: "9P", name: "9", widget: number }
+              - { label: "10P", name: "10", widget: number }
+          - label: "A0"
+            name: A0
+            widget: object
+            fields:
+              - { label: "2P", name: "2", widget: number }
+              - { label: "3P", name: "3", widget: number }
+              - { label: "4P", name: "4", widget: number }
+              - { label: "5P", name: "5", widget: number }
+              - { label: "6P", name: "6", widget: number }
+              - { label: "7P", name: "7", widget: number }
+              - { label: "8P", name: "8", widget: number }
+              - { label: "9P", name: "9", widget: number }
+              - { label: "10P", name: "10", widget: number }
+      - label: "Creative Package"
+        name: creative
+        widget: object
+        fields:
+          - label: "Fixkosten"
+            name: fixed_costs
+            widget: object
+            fields:
+              - { label: "Fotoshooting (CHF)", name: photoshoot, widget: number }
+              - { label: "Zuschlag (CHF)", name: surcharge, widget: number }
+              - { label: "Equipment (CHF)", name: equipment, widget: number }
+          - label: "Zeichnungspreise"
+            name: drawing
+            widget: object
+            fields:
+              - label: "A3"
+                name: A3
+                widget: object
+                fields:
+                  - { label: "1P", name: "1", widget: number }
+                  - { label: "2P", name: "2", widget: number }
+                  - { label: "3P", name: "3", widget: number }
+                  - { label: "4P", name: "4", widget: number }
+              - label: "A2"
+                name: A2
+                widget: object
+                fields:
+                  - { label: "1P", name: "1", widget: number }
+                  - { label: "2P", name: "2", widget: number }
+                  - { label: "3P", name: "3", widget: number }
+                  - { label: "4P", name: "4", widget: number }
+              - label: "A1"
+                name: A1
+                widget: object
+                fields:
+                  - { label: "1P", name: "1", widget: number }
+                  - { label: "2P", name: "2", widget: number }
+                  - { label: "3P", name: "3", widget: number }
+                  - { label: "4P", name: "4", widget: number }
+              - label: "A0"
+                name: A0
+                widget: object
+                fields:
+                  - { label: "1P", name: "1", widget: number }
+                  - { label: "2P", name: "2", widget: number }
+                  - { label: "3P", name: "3", widget: number }
+                  - { label: "4P", name: "4", widget: number }
+
+  # ============================================
+  # ABOUT PAGE
+  # ============================================
+  - name: about
+    label: "Über Mich"
+    file: src/data/about.json
+    format: json
+    fields:
+      - label: "Hero"
+        name: hero
+        widget: object
+        fields:
+          - { label: "Tagline (DE)", name: tagline_de, widget: string }
+          - { label: "Tagline (EN)", name: tagline_en, widget: string }
+      - label: "Bio"
+        name: bio
+        widget: object
+        fields:
+          - { label: "Überschrift", name: heading, widget: string }
+          - { label: "Untertitel (DE)", name: subheading_de, widget: string }
+          - { label: "Untertitel (EN)", name: subheading_en, widget: string }
+          - { label: "Absätze (DE)", name: paragraphs_de, widget: list, field: { label: "Absatz", name: paragraph, widget: text } }
+          - { label: "Absätze (EN)", name: paragraphs_en, widget: list, field: { label: "Paragraph", name: paragraph, widget: text } }
+      - label: "Karriere"
+        name: career
+        widget: object
+        fields:
+          - { label: "Text (DE)", name: text_de, widget: text }
+          - { label: "Text (EN)", name: text_en, widget: text }
+      - label: "Testimonials"
+        name: testimonials
+        widget: list
+        summary: "{{fields.name}}"
+        fields:
+          - { label: "Name", name: name, widget: string }
+          - { label: "Initial", name: initial, widget: string, hint: "Erster Buchstabe, z.B. 'K'" }
+          - { label: "Text (DE)", name: text_de, widget: text }
+          - { label: "Text (EN)", name: text_en, widget: text }

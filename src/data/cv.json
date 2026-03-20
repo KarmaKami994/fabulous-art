@@ -1,0 +1,118 @@
+{
+  "awards": [
+    {
+      "year": 2026,
+      "badge": "Second Place Winner",
+      "title": "Januar Art Competition",
+      "organization": "Helvetart"
+    },
+    {
+      "year": 2025,
+      "badge": "Honorable Mention",
+      "title": "The Strokes of Genius 17: Best of Drawing",
+      "organization": "Artistsnetwork"
+    },
+    {
+      "year": 2024,
+      "badge": "Highly Commended",
+      "title": "The Homiens Art Prize, Fall 2024",
+      "organization": "Homiens"
+    },
+    {
+      "year": 2024,
+      "badge": "Honorable Mention Award",
+      "title": "10th Portrait",
+      "organization": "Teravarna"
+    },
+    {
+      "year": 2024,
+      "badge": "Best of Show",
+      "title": "Stand 2024",
+      "organization": "Art Fluent"
+    }
+  ],
+  "solo_exhibitions": [
+    {
+      "year": 2024,
+      "title": "FABulousART Exhibition",
+      "venue": "Charity Gallery, Zürich",
+      "digital": false
+    }
+  ],
+  "group_exhibitions": [
+    {
+      "year": 2025,
+      "title": "Drawing 2025",
+      "venue": "Almenara, Spanien",
+      "digital": true
+    },
+    {
+      "year": 2024,
+      "title": "Swiss Art Expo",
+      "venue": "Zürich",
+      "digital": false
+    },
+    {
+      "year": 2023,
+      "title": "Swiss Art Expo",
+      "venue": "Zürich",
+      "digital": false
+    },
+    {
+      "year": 2023,
+      "title": "Artboxy Project",
+      "venue": "New York",
+      "digital": true
+    },
+    {
+      "year": 2023,
+      "title": "Contemporary Art Exhibition Prism",
+      "venue": "Van Gogh Gallery, Madrid",
+      "digital": false
+    },
+    {
+      "year": 2022,
+      "title": "Art Basel Miami",
+      "venue": "Artboxy Projects, Miami",
+      "digital": true
+    },
+    {
+      "year": 2022,
+      "title": "International Contemporary Art Fair Bruxelles",
+      "venue": "Van Gogh Gallery, Brüssel",
+      "digital": false
+    },
+    {
+      "year": 2022,
+      "title": "Casa del Arte",
+      "venue": "Mallorca",
+      "digital": false
+    },
+    {
+      "year": 2022,
+      "title": "Swiss Art Expo",
+      "venue": "Zürich",
+      "digital": false
+    },
+    {
+      "year": 2021,
+      "title": "Swiss Art Expo",
+      "venue": "Artboxy Project, Zürich",
+      "digital": true
+    }
+  ],
+  "publishing": [
+    {
+      "year": 2024,
+      "title": "Inside the Box",
+      "description_de": "Artwork, «Inside the Box»",
+      "description_en": "Artwork, \"Inside the Box\""
+    },
+    {
+      "year": 2024,
+      "title": "Homiens Magazine",
+      "description_de": "Meet the Artist, Homiens Seite 40 & 41",
+      "description_en": "Meet the Artist, Homiens Page 40 & 41"
+    }
+  ]
+}

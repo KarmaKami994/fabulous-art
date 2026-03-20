@@ -1,7 +1,17 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import cvData from '@/data/cv.json';
 const locale = 'de';
 const pageTitle = 'Lebenslauf';
+
+const totalAwards = cvData.awards.length;
+const totalExhibitions = cvData.solo_exhibitions.length + cvData.group_exhibitions.length;
+const allVenues = [...cvData.solo_exhibitions, ...cvData.group_exhibitions].map(e => e.venue);
+const countries = new Set(allVenues.map(v => {
+  const parts = v.split(',');
+  return parts.length > 1 ? parts[parts.length - 1].trim() : v.trim();
+}));
+const totalCountries = countries.size;
 ---
 
 <BaseLayout title={pageTitle} locale={locale} description="Lebenslauf von Fabienne Meyer – Auszeichnungen, Ausstellungen und Publikationen.">
@@ -23,53 +33,22 @@ const pageTitle = 'Lebenslauf';
           <div class="cv-section__line"></div>
         </div>
         <div class="cv-section__content">
-          <div class="cv-entry cv-entry--award fade-in">
-            <span class="cv-entry__year">2026</span>
-            <div class="cv-entry__details">
-              <span class="cv-entry__badge">Second Place Winner</span>
-              <p class="cv-entry__title">Januar Art Competition</p>
-              <p class="cv-entry__org">Helvetart</p>
+          {cvData.awards.map((award) => (
+            <div class="cv-entry cv-entry--award fade-in">
+              <span class="cv-entry__year">{award.year}</span>
+              <div class="cv-entry__details">
+                <span class="cv-entry__badge">{award.badge}</span>
+                <p class="cv-entry__title">{award.title}</p>
+                <p class="cv-entry__org">{award.organization}</p>
+              </div>
             </div>
-          </div>
-        <div class="cv-section__content">
-          <div class="cv-entry cv-entry--award fade-in">
-            <span class="cv-entry__year">2025</span>
-            <div class="cv-entry__details">
-              <span class="cv-entry__badge">Honorable Mention</span>
-              <p class="cv-entry__title">The Strokes of Genius 17: Best of Drawing</p>
-              <p class="cv-entry__org">Artistsnetwork</p>
-            </div>
-          </div>
-          <div class="cv-entry cv-entry--award fade-in">
-            <span class="cv-entry__year">2024</span>
-            <div class="cv-entry__details">
-              <span class="cv-entry__badge">Highly Commended</span>
-              <p class="cv-entry__title">The Homiens Art Prize, Fall 2024</p>
-              <p class="cv-entry__org">Homiens</p>
-            </div>
-          </div>
-          <div class="cv-entry cv-entry--award fade-in">
-            <span class="cv-entry__year">2024</span>
-            <div class="cv-entry__details">
-              <span class="cv-entry__badge">Honorable Mention Award</span>
-              <p class="cv-entry__title">10th Portrait</p>
-              <p class="cv-entry__org">Teravarna</p>
-            </div>
-          </div>
-          <div class="cv-entry cv-entry--award fade-in">
-            <span class="cv-entry__year">2024</span>
-            <div class="cv-entry__details">
-              <span class="cv-entry__badge">Best of Show</span>
-              <p class="cv-entry__title">Stand 2024</p>
-              <p class="cv-entry__org">Art Fluent</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Einzelausstellungen -->
+  <!-- Solo Exhibitions -->
   <section class="cv-section cv-section--alt section fade-in">
     <div class="container">
       <div class="cv-section__grid">
@@ -78,19 +57,24 @@ const pageTitle = 'Lebenslauf';
           <div class="cv-section__line"></div>
         </div>
         <div class="cv-section__content">
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2024</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">«FABulousART Exhibition»</p>
-              <p class="cv-entry__org">Charity Gallery, Zürich</p>
+          {cvData.solo_exhibitions.map((ex) => (
+            <div class="cv-entry fade-in">
+              <span class="cv-entry__year">{ex.year}</span>
+              <div class="cv-entry__details">
+                <p class="cv-entry__title">
+                  «{ex.title}»
+                  {ex.digital && <span class="cv-entry__tag">digital</span>}
+                </p>
+                <p class="cv-entry__org">{ex.venue}</p>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Gruppenausstellungen -->
+  <!-- Group Exhibitions -->
   <section class="cv-section section fade-in">
     <div class="container">
       <div class="cv-section__grid">
@@ -99,82 +83,24 @@ const pageTitle = 'Lebenslauf';
           <div class="cv-section__line"></div>
         </div>
         <div class="cv-section__content">
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2025</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Drawing 2025 <span class="cv-entry__tag">digital</span></p>
-              <p class="cv-entry__org">Almenara, Spanien</p>
+          {cvData.group_exhibitions.map((ex) => (
+            <div class="cv-entry fade-in">
+              <span class="cv-entry__year">{ex.year}</span>
+              <div class="cv-entry__details">
+                <p class="cv-entry__title">
+                  {ex.title}
+                  {ex.digital && <span class="cv-entry__tag">digital</span>}
+                </p>
+                <p class="cv-entry__org">{ex.venue}</p>
+              </div>
             </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2024</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Swiss Art Expo</p>
-              <p class="cv-entry__org">Zürich</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2023</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Swiss Art Expo</p>
-              <p class="cv-entry__org">Zürich</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2023</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Artboxy Project <span class="cv-entry__tag">digital</span></p>
-              <p class="cv-entry__org">New York</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2023</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Contemporary Art Exhibition Prism</p>
-              <p class="cv-entry__org">Van Gogh Gallery, Madrid</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2022</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Art Basel Miami <span class="cv-entry__tag">digital</span></p>
-              <p class="cv-entry__org">Artboxy Projects, Miami</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2022</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">International Contemporary Art Fair Bruxelles</p>
-              <p class="cv-entry__org">Van Gogh Gallery, Brüssel</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2022</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Casa del Arte</p>
-              <p class="cv-entry__org">Mallorca</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2022</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Swiss Art Expo</p>
-              <p class="cv-entry__org">Zürich</p>
-            </div>
-          </div>
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year">2021</span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title">Swiss Art Expo <span class="cv-entry__tag">digital</span></p>
-              <p class="cv-entry__org">Artboxy Project, Zürich</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Publikationen -->
+  <!-- Publications -->
   <section class="cv-section cv-section--alt section fade-in">
     <div class="container">
       <div class="cv-section__grid">
@@ -183,21 +109,14 @@ const pageTitle = 'Lebenslauf';
           <div class="cv-section__line"></div>
         </div>
         <div class="cv-section__content">
-          <div class="cv-entry fade-in">
-            <span class="cv-entry__year"></span>
-            <div class="cv-entry__details">
-              <a href="https://homiens.com/wp-content/uploads/2025/09/Homiens-Meet-the-Artists-4.pdf">
-                <p class="cv-entry__title">Artwork, «Inside the Box»</p>
-                <p class="cv-entry__org">Meet the Artist Homiens, Seite 40 &amp; 41</p>
-              </a>
+          {cvData.publishing.map((pub) => (
+            <div class="cv-entry fade-in">
+              <span class="cv-entry__year">{pub.year || ''}</span>
+              <div class="cv-entry__details">
+                <p class="cv-entry__title">{pub.description_de}</p>
+              </div>
             </div>
-          </div>
-<!--      <div class="cv-entry fade-in">
-            <span class="cv-entry__year"></span>
-            <div class="cv-entry__details">
-              <p class="cv-entry__title"></p>
-            </div> 
-          </div>-->
+          ))}
         </div>
       </div>
     </div>
@@ -208,15 +127,15 @@ const pageTitle = 'Lebenslauf';
     <div class="container">
       <div class="cv-stats__grid">
         <div class="cv-stats__item fade-in fade-in-delay-1">
-          <span class="cv-stats__number">4</span>
+          <span class="cv-stats__number">{totalAwards}</span>
           <span class="cv-stats__label">Auszeichnungen</span>
         </div>
         <div class="cv-stats__item fade-in fade-in-delay-2">
-          <span class="cv-stats__number">11</span>
+          <span class="cv-stats__number">{totalExhibitions}</span>
           <span class="cv-stats__label">Ausstellungen</span>
         </div>
         <div class="cv-stats__item fade-in fade-in-delay-3">
-          <span class="cv-stats__number">7</span>
+          <span class="cv-stats__number">{totalCountries}</span>
           <span class="cv-stats__label">Länder</span>
         </div>
       </div>
@@ -226,222 +145,36 @@ const pageTitle = 'Lebenslauf';
 </BaseLayout>
 
 <style>
-  /* ---- Hero ---- */
-  .cv-hero {
-    padding-top: calc(var(--header-height) + var(--space-5xl));
-    padding-bottom: var(--space-4xl);
-    background: var(--color-black);
-    color: var(--color-white);
-    text-align: center;
-  }
-
-  .cv-hero__title {
-    font-family: var(--font-heading);
-    font-size: var(--text-5xl);
-    font-weight: 300;
-    letter-spacing: 0.08em;
-    margin-bottom: var(--space-md);
-    animation: fadeUp 1s ease forwards;
-  }
-
-  .cv-hero__subtitle {
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    font-weight: 400;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--color-gray-400);
-    max-width: none;
-    animation: fadeUp 1s ease 0.15s forwards;
-    opacity: 0;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ---- Sections ---- */
-  .cv-section {
-    padding-block: var(--space-3xl);
-  }
-
-  .cv-section--alt {
-    background: var(--color-gray-50);
-  }
-
-  .cv-section__grid {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: var(--space-3xl);
-  }
-
-  .cv-section__label {
-    position: relative;
-  }
-
-  .cv-section__heading {
-    font-family: var(--font-heading);
-    font-size: var(--text-2xl);
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    position: sticky;
-    top: calc(var(--header-height) + var(--space-xl));
-  }
-
-  .cv-section__line {
-    width: 40px;
-    height: 1px;
-    background: var(--color-black);
-    margin-top: var(--space-md);
-    position: sticky;
-    top: calc(var(--header-height) + var(--space-xl) + 3rem);
-  }
-
-  .cv-section__content {
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ---- Entries ---- */
-  .cv-entry {
-    display: grid;
-    grid-template-columns: 60px 1fr;
-    gap: var(--space-lg);
-    padding: var(--space-lg) 0;
-    border-bottom: 1px solid var(--color-border);
-    align-items: baseline;
-  }
-
-  .cv-entry:last-child {
-    border-bottom: none;
-  }
-
-  .cv-entry__year {
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    min-width: 50px;
-  }
-
-  .cv-entry__details {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-  }
-
-  .cv-entry__title {
-    font-family: var(--font-body);
-    font-size: var(--text-base);
-    font-weight: 500;
-    color: var(--color-text);
-    max-width: none;
-    line-height: 1.5;
-  }
-
-  .cv-entry__org {
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-    max-width: none;
-  }
-
-  .cv-entry__tag {
-    display: inline-block;
-    font-size: var(--text-xs);
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    background: var(--color-gray-100);
-    padding: 2px 8px;
-    border-radius: 3px;
-    margin-left: var(--space-xs);
-    vertical-align: middle;
-  }
-
-  /* ---- Award Badge ---- */
-  .cv-entry--award .cv-entry__badge {
-    display: inline-block;
-    font-family: var(--font-body);
-    font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-black);
-    background: var(--color-gray-100);
-    border: 1px solid var(--color-gray-300);
-    padding: 4px 12px;
-    border-radius: 3px;
-    margin-bottom: var(--space-xs);
-    width: fit-content;
-  }
-
-  /* ---- Stats ---- */
-  .cv-stats {
-    background: var(--color-black);
-    color: var(--color-white);
-    padding-block: var(--space-4xl);
-  }
-
-  .cv-stats__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-2xl);
-    text-align: center;
-  }
-
-  .cv-stats__item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-  }
-
-  .cv-stats__number {
-    font-family: var(--font-heading);
-    font-size: var(--text-5xl);
-    font-weight: 300;
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
-
-  .cv-stats__label {
-    font-family: var(--font-body);
-    font-size: var(--text-xs);
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-gray-400);
-  }
-
-  /* ---- Responsive ---- */
+  .cv-hero { padding-top: calc(var(--header-height) + var(--space-5xl)); padding-bottom: var(--space-4xl); background: var(--color-black); color: var(--color-white); text-align: center; }
+  .cv-hero__title { font-family: var(--font-heading); font-size: var(--text-5xl); font-weight: 300; letter-spacing: 0.08em; margin-bottom: var(--space-md); animation: fadeUp 1s ease forwards; }
+  .cv-hero__subtitle { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-gray-400); max-width: none; animation: fadeUp 1s ease 0.15s forwards; opacity: 0; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .cv-section { padding-block: var(--space-3xl); }
+  .cv-section--alt { background: var(--color-gray-50); }
+  .cv-section__grid { display: grid; grid-template-columns: 260px 1fr; gap: var(--space-3xl); }
+  .cv-section__label { position: relative; }
+  .cv-section__heading { font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: 400; letter-spacing: 0.01em; position: sticky; top: calc(var(--header-height) + var(--space-xl)); }
+  .cv-section__line { width: 40px; height: 1px; background: var(--color-black); margin-top: var(--space-md); position: sticky; top: calc(var(--header-height) + var(--space-xl) + 3rem); }
+  .cv-section__content { display: flex; flex-direction: column; }
+  .cv-entry { display: grid; grid-template-columns: 60px 1fr; gap: var(--space-lg); padding: var(--space-lg) 0; border-bottom: 1px solid var(--color-border); align-items: baseline; }
+  .cv-entry:last-child { border-bottom: none; }
+  .cv-entry__year { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 600; color: var(--color-text-secondary); min-width: 50px; }
+  .cv-entry__details { display: flex; flex-direction: column; gap: var(--space-xs); }
+  .cv-entry__title { font-family: var(--font-body); font-size: var(--text-base); font-weight: 500; color: var(--color-text); max-width: none; line-height: 1.5; }
+  .cv-entry__org { font-size: var(--text-sm); color: var(--color-text-secondary); max-width: none; }
+  .cv-entry__tag { display: inline-block; font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--color-text-muted); background: var(--color-gray-100); padding: 2px 8px; border-radius: 3px; margin-left: var(--space-xs); vertical-align: middle; }
+  .cv-entry--award .cv-entry__badge { display: inline-block; font-family: var(--font-body); font-size: var(--text-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-black); background: var(--color-gray-100); border: 1px solid var(--color-gray-300); padding: 4px 12px; border-radius: 3px; margin-bottom: var(--space-xs); width: fit-content; }
+  .cv-stats { background: var(--color-black); color: var(--color-white); padding-block: var(--space-4xl); }
+  .cv-stats__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2xl); text-align: center; }
+  .cv-stats__item { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .cv-stats__number { font-family: var(--font-heading); font-size: var(--text-5xl); font-weight: 300; line-height: 1; letter-spacing: -0.02em; }
+  .cv-stats__label { font-family: var(--font-body); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-gray-400); }
   @media (max-width: 768px) {
-    .cv-section__grid {
-      grid-template-columns: 1fr;
-      gap: var(--space-xl);
-    }
-
-    .cv-section__heading {
-      position: static;
-    }
-
-    .cv-section__line {
-      position: static;
-    }
-
-    .cv-entry {
-      grid-template-columns: 50px 1fr;
-      gap: var(--space-md);
-    }
-
-    .cv-hero {
-      padding-top: calc(var(--header-height) + var(--space-3xl));
-      padding-bottom: var(--space-3xl);
-    }
-
-    .cv-stats__grid {
-      grid-template-columns: 1fr;
-      gap: var(--space-2xl);
-    }
+    .cv-section__grid { grid-template-columns: 1fr; gap: var(--space-xl); }
+    .cv-section__heading { position: static; }
+    .cv-section__line { position: static; }
+    .cv-entry { grid-template-columns: 50px 1fr; gap: var(--space-md); }
+    .cv-hero { padding-top: calc(var(--header-height) + var(--space-3xl)); padding-bottom: var(--space-3xl); }
+    .cv-stats__grid { grid-template-columns: 1fr; gap: var(--space-2xl); }
   }
 </style>

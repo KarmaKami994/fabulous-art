@@ -2,6 +2,7 @@ backend:
   name: github
   repo: KarmaKami994/fabulous-art
   branch: main
+  site_domain: resilient-gnome-426f7f.netlify.app
 
 media_folder: public/images/cms
 public_folder: /images/cms

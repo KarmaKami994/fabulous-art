@@ -67,6 +67,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }
     }
 
+    // --- Additional fields ---
+    const noIdea = formData.get('noIdea');
+    if (noIdea === 'true') orderData.noIdea = 'true';
+    const message = formData.get('message');
+    if (message && typeof message === 'string') orderData.message = message;
+
     // --- Validate required fields ---
     const required = ['package', 'size', 'shipping', 'firstName', 'lastName', 'email', 'address', 'zip', 'city'];
     for (const field of required) {
@@ -87,50 +93,39 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    // --- Handle image upload to R2 ---
-    let imageUrl: string | null = null;
-    let imageName: string | null = null;
-    const imageFile = formData.get('image') as File | null;
+    // --- Handle image uploads to R2 (multiple) ---
+    const imageNames: string[] = [];
+    const imageUrls: string[] = [];
+    const imageFiles = formData.getAll('images') as File[];
+    const orderId = `${Date.now()}_${orderData.lastName.replace(/[^a-zA-Z0-9]/g, '')}`;
 
-    if (imageFile && imageFile.size > 0) {
-      // Validate file
-      if (!ALLOWED_TYPES.includes(imageFile.type)) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Nur JPG, PNG oder WEBP erlaubt' }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
-      }
+    for (const imageFile of imageFiles) {
+      if (!imageFile || imageFile.size === 0) continue;
 
-      if (imageFile.size > MAX_FILE_SIZE) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Datei zu gross (max. 10 MB)' }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
-      }
+      if (!ALLOWED_TYPES.includes(imageFile.type)) continue;
+      if (imageFile.size > MAX_FILE_SIZE) continue;
 
-      // Generate unique filename
-      const timestamp = Date.now();
       const sanitizedName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const r2Key = `orders/${timestamp}_${sanitizedName}`;
+      const r2Key = `orders/${orderId}/${sanitizedName}`;
 
-      // Upload to R2
       await env.ORDER_IMAGES.put(r2Key, imageFile.stream(), {
         httpMetadata: { contentType: imageFile.type },
         customMetadata: {
           originalName: imageFile.name,
           orderEmail: orderData.email,
+          orderId: orderId,
           uploadedAt: new Date().toISOString(),
         },
       });
 
-      imageUrl = r2Key;
-      imageName = imageFile.name;
+      imageUrls.push(r2Key);
+      imageNames.push(imageFile.name);
     }
 
     // --- Build email content ---
     const locale = orderData.locale || 'de';
-    const emailHtml = buildEmailHtml(orderData, imageName, imageUrl, locale);
-    const emailText = buildEmailText(orderData, imageName, locale);
+    const emailHtml = buildEmailHtml(orderData, imageNames, imageUrls, locale);
+    const emailText = buildEmailText(orderData, imageNames, locale);
     const confirmHtml = buildCustomerConfirmationHtml(orderData, locale);
     const confirmText = buildCustomerConfirmationText(orderData, locale);
 
@@ -231,8 +226,8 @@ export const onRequestOptions: PagesFunction = async () => {
 
 function buildEmailHtml(
   data: Record<string, string>,
-  imageName: string | null,
-  imageUrl: string | null,
+  imageNames: string[],
+  imageUrls: string[],
   locale: string
 ): string {
   const packageLabels: Record<string, string> = {
@@ -319,13 +314,28 @@ function buildEmailHtml(
       </div>
       ` : ''}
 
-      ${imageName ? `
+      ${data.noIdea === 'true' ? `
       <div class="section">
-        <div class="section-title">Referenzbild</div>
-        <div class="image-note">
-          📎 <strong>${imageName}</strong><br>
-          Gespeichert in R2: <code>${imageUrl}</code>
-        </div>
+        <div class="section-title">Idee / Beschreibung</div>
+        <div class="idea-box" style="background:#fff3cd; border-color:#ffc107;">⚠️ Kunde möchte beraten werden — hat noch keine konkrete Idee.</div>
+      </div>
+      ` : ''}
+
+      ${data.message ? `
+      <div class="section">
+        <div class="section-title">Bemerkung</div>
+        <div class="idea-box">${data.message.replace(/\n/g, '<br>')}</div>
+      </div>
+      ` : ''}
+
+      ${imageNames.length > 0 ? `
+      <div class="section">
+        <div class="section-title">Referenzbilder (${imageNames.length})</div>
+        ${imageNames.map((name, i) => `
+        <div class="image-note" style="margin-bottom: 8px;">
+          📎 <strong>${name}</strong><br>
+          <small style="color:#737373;">R2: ${imageUrls[i]}</small>
+        </div>`).join('')}
       </div>
       ` : ''}
 
@@ -352,7 +362,7 @@ function buildEmailHtml(
 
 function buildEmailText(
   data: Record<string, string>,
-  imageName: string | null,
+  imageNames: string[],
   locale: string
 ): string {
   let text = `NEUE BESTELLUNG — FABulousART\n`;
@@ -373,7 +383,9 @@ function buildEmailText(
   }
 
   if (data.idea) text += `IDEE\n${'-'.repeat(20)}\n${data.idea}\n\n`;
-  if (imageName) text += `REFERENZBILD: ${imageName}\n\n`;
+  if (data.noIdea === 'true') text += `IDEE\n${'-'.repeat(20)}\nKunde möchte beraten werden.\n\n`;
+  if (data.message) text += `BEMERKUNG\n${'-'.repeat(20)}\n${data.message}\n\n`;
+  if (imageNames.length > 0) text += `REFERENZBILDER: ${imageNames.length} Datei(en)\n${imageNames.map(n => `  - ${n}`).join('\n')}\n\n`;
 
   text += `KONTAKT\n${'-'.repeat(20)}\n`;
   text += `${data.firstName} ${data.lastName}\n`;

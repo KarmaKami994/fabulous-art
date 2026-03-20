@@ -2,10 +2,7 @@ backend:
   name: github
   repo: KarmaKami994/fabulous-art
   branch: main
-  auth_type: pkce
-  app_id: Ov23liS4hjvnQbiX5cSa
-  base_url: https://github.com
-  auth_endpoint: login/oauth/authorize
+  base_url: sveltia-cms-auth.info-fabulousart.workers.dev
 
 media_folder: public/images/cms
 public_folder: /images/cms

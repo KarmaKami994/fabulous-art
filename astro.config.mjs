@@ -22,7 +22,7 @@ export default defineConfig({
     locales: ['de', 'en'],
     routing: {
       prefixDefaultLocale: true,
-      redirectToDefaultLocale: true,
+      redirectToDefaultLocale: false,
     },
   },
   build: {

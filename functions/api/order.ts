@@ -68,12 +68,25 @@ async function verifyTurnstile(token: string, secret: string, ip: string): Promi
   }
 }
 
+// --- Input Sanitization ---
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
-  // CORS headers
+  // CORS headers (support both www and non-www)
+  const origin = request.headers.get('Origin') || '';
+  const allowedOrigins = ['https://www.fabulous-art.ch', 'https://fabulous-art.ch'];
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   const corsHeaders = {
-    'Access-Control-Allow-Origin': 'https://www.fabulous-art.ch',
+    'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
@@ -111,16 +124,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     for (const field of fields) {
       const value = formData.get(field);
       if (value && typeof value === 'string') {
-        orderData[field] = value;
+        orderData[field] = escapeHtml(value);
       }
     }
 
-    // --- Price data ---
+    // --- Price data (only allow digits and dots) ---
     const priceFields = ['drawingPrice', 'creativePrice', 'packagingPrice', 'shippingPrice', 'totalPrice'];
     for (const field of priceFields) {
       const value = formData.get(field);
       if (value && typeof value === 'string') {
-        orderData[field] = value;
+        orderData[field] = value.replace(/[^0-9.]/g, '');
       }
     }
 
@@ -273,11 +286,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 };
 
 // Handle CORS preflight
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction = async (context) => {
+  const origin = context.request.headers.get('Origin') || '';
+  const allowedOrigins = ['https://www.fabulous-art.ch', 'https://fabulous-art.ch'];
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': 'https://www.fabulous-art.ch',
+      'Access-Control-Allow-Origin': corsOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

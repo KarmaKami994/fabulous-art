@@ -2,8 +2,8 @@ backend:
   name: github
   repo: KarmaKami994/fabulous-art
   branch: main
-  base_url: sveltia-cms-auth.info-fabulousart.workers.dev
-
+  base_url:  https://sveltia-cms-auth.info-fabulousart.workers.dev
+  
 media_folder: public/images/cms
 public_folder: /images/cms
 

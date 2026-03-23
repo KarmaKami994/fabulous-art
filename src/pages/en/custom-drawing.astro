@@ -11,6 +11,7 @@ const creativePersons = [1, 2, 3, 4];
 
 <BaseLayout title={t.pageTitle} locale={locale} description={t.pageDesc}>
 
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <section class="cd-page">
   <div class="container">
     <header class="cd-page__header fade-in">
@@ -36,11 +37,11 @@ const creativePersons = [1, 2, 3, 4];
       <div class="wizard__progress" data-steps="7"><div class="wizard__progress-bar"><div class="wizard__progress-fill"></div></div><div class="wizard__steps-label"></div></div>
       <div class="wizard__step" data-step="1"><h3 class="wizard__step-title">{t.size.title}</h3><p class="wizard__step-subtitle">{t.size.subtitle}</p><div class="wizard__options" data-field="size">{sizes.map(s=><button class="wizard__option" data-value={s}>{s}</button>)}</div><div class="wizard__error" data-error="size"></div></div>
       <div class="wizard__step" data-step="2"><h3 class="wizard__step-title">{t.format.title}</h3><p class="wizard__step-subtitle">{t.format.subtitle}</p><div class="wizard__options" data-field="format"><button class="wizard__option" data-value="horizontal">{t.format.horizontal}</button><button class="wizard__option" data-value="vertical">{t.format.vertical}</button></div><div class="wizard__error" data-error="format"></div></div>
-      <div class="wizard__step" data-step="3"><h3 class="wizard__step-title">{t.picture.title}</h3><p class="wizard__step-subtitle">{t.picture.subtitle}</p><ul class="wizard__req-list"><li>{t.picture.req1}</li><li>{t.picture.req2}</li></ul><div class="wizard__dropzone" data-field="image"><input type="file" accept="image/png,image/jpeg,image/webp" class="wizard__file-input" /><div class="wizard__dropzone-content"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>{t.picture.dropzone}</span><small>{t.picture.maxSize}</small></div><div class="wizard__preview" style="display:none;"><img class="wizard__preview-img" alt="Preview" /><button type="button" class="wizard__preview-change">{t.picture.changeImage}</button></div></div><div class="wizard__error" data-error="image"></div></div>
+      <div class="wizard__step" data-step="3"><h3 class="wizard__step-title">{t.picture.title}</h3><p class="wizard__step-subtitle">{t.picture.subtitle}</p><ul class="wizard__req-list"><li>{t.picture.req1}</li><li>{t.picture.req2}</li></ul><div class="wizard__dropzone" data-field="image"><input type="file" accept="image/png,image/jpeg" class="wizard__file-input" /><div class="wizard__dropzone-content"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>{t.picture.dropzone}</span><small>{t.picture.maxSize}</small></div><div class="wizard__preview" style="display:none;"><img class="wizard__preview-img" alt="Preview" /><button type="button" class="wizard__preview-change">{t.picture.changeImage}</button></div></div><div class="wizard__error" data-error="image"></div></div>
       <div class="wizard__step" data-step="4"><h3 class="wizard__step-title">{t.shipping.title}</h3><p class="wizard__step-subtitle">{t.shipping.subtitle}</p><div class="wizard__options" data-field="shipping"><button class="wizard__option" data-value="switzerland">{t.shipping.switzerland}</button><button class="wizard__option" data-value="europe">{t.shipping.europe}</button><button class="wizard__option" data-value="worldwide">{t.shipping.worldwide}</button></div><div class="wizard__error" data-error="shipping"></div></div>
       <div class="wizard__step" data-step="5"><h3 class="wizard__step-title">{t.contact.title}</h3><p class="wizard__step-subtitle">{t.contact.subtitle}</p><div class="wizard__form-grid"><div class="wizard__field"><label>{t.contact.firstName} *</label><input type="text" data-field="firstName" required /></div><div class="wizard__field"><label>{t.contact.lastName} *</label><input type="text" data-field="lastName" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.email} *</label><input type="email" data-field="email" required /></div><div class="wizard__field"><label>{t.contact.phone}</label><input type="tel" data-field="phone" /></div><div class="wizard__field"><label>{t.contact.country} *</label><input type="text" data-field="country" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.address} *</label><input type="text" data-field="address" required /></div><div class="wizard__field"><label>{t.contact.zip} *</label><input type="text" data-field="zip" required /></div><div class="wizard__field"><label>{t.contact.city} *</label><input type="text" data-field="city" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.message}</label><textarea data-field="message" rows="3"></textarea></div></div><div class="wizard__error" data-error="contact"></div></div>
       <div class="wizard__step" data-step="6"><h3 class="wizard__step-title">{t.reminder.title}</h3><p class="wizard__step-subtitle">{t.reminder.subtitle}</p><label class="wizard__checkbox"><input type="checkbox" data-field="reminderAccepted" /><span>{t.reminder.accept}</span></label><div class="wizard__error" data-error="reminder"></div></div>
-      <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div></div>
+      <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div><div class="cf-turnstile" data-sitekey="0x4AAAAAACu25Rq3oX0bSdba" data-size="invisible"></div></div>
       <div class="wizard__nav"><button class="wizard__nav-btn wizard__nav-back" type="button">{t.nav.back}</button><button class="wizard__nav-btn wizard__nav-next btn" type="button">{t.nav.next}</button></div>
     </div>
 
@@ -51,11 +52,11 @@ const creativePersons = [1, 2, 3, 4];
       <div class="wizard__step" data-step="1"><h3 class="wizard__step-title">{t.size.title}</h3><p class="wizard__step-subtitle">{t.size.subtitle}</p><div class="wizard__options" data-field="size">{sizes.map(s=><button class="wizard__option" data-value={s}>{s}</button>)}</div><div class="wizard__error" data-error="size"></div></div>
       <div class="wizard__step" data-step="2"><h3 class="wizard__step-title">{t.people.title}</h3><p class="wizard__step-subtitle">{t.people.subtitle}</p><div class="wizard__options wizard__options--grid" data-field="people">{familyPersons.map(p=><button class="wizard__option" data-value={String(p)}>{p} {t.people.persons}</button>)}</div><div class="wizard__error" data-error="people"></div></div>
       <div class="wizard__step" data-step="3"><h3 class="wizard__step-title">{t.format.title}</h3><p class="wizard__step-subtitle">{t.format.subtitle}</p><div class="wizard__options" data-field="format"><button class="wizard__option" data-value="horizontal">{t.format.horizontal}</button><button class="wizard__option" data-value="vertical">{t.format.vertical}</button></div><div class="wizard__error" data-error="format"></div></div>
-      <div class="wizard__step" data-step="4"><h3 class="wizard__step-title">{t.picture.title}</h3><p class="wizard__step-subtitle">{t.picture.subtitle}</p><ul class="wizard__req-list"><li>{t.picture.req1}</li><li>{t.picture.req2}</li></ul><div class="wizard__dropzone" data-field="image"><input type="file" accept="image/png,image/jpeg,image/webp" class="wizard__file-input" /><div class="wizard__dropzone-content"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>{t.picture.dropzone}</span><small>{t.picture.maxSize}</small></div><div class="wizard__preview" style="display:none;"><img class="wizard__preview-img" alt="Preview" /><button type="button" class="wizard__preview-change">{t.picture.changeImage}</button></div></div><div class="wizard__error" data-error="image"></div></div>
+      <div class="wizard__step" data-step="4"><h3 class="wizard__step-title">{t.picture.title}</h3><p class="wizard__step-subtitle">{t.picture.subtitle}</p><ul class="wizard__req-list"><li>{t.picture.req1}</li><li>{t.picture.req2}</li></ul><div class="wizard__dropzone" data-field="image"><input type="file" accept="image/png,image/jpeg" class="wizard__file-input" /><div class="wizard__dropzone-content"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>{t.picture.dropzone}</span><small>{t.picture.maxSize}</small></div><div class="wizard__preview" style="display:none;"><img class="wizard__preview-img" alt="Preview" /><button type="button" class="wizard__preview-change">{t.picture.changeImage}</button></div></div><div class="wizard__error" data-error="image"></div></div>
       <div class="wizard__step" data-step="5"><h3 class="wizard__step-title">{t.shipping.title}</h3><p class="wizard__step-subtitle">{t.shipping.subtitle}</p><div class="wizard__options" data-field="shipping"><button class="wizard__option" data-value="switzerland">{t.shipping.switzerland}</button><button class="wizard__option" data-value="europe">{t.shipping.europe}</button><button class="wizard__option" data-value="worldwide">{t.shipping.worldwide}</button></div><div class="wizard__error" data-error="shipping"></div></div>
       <div class="wizard__step" data-step="6"><h3 class="wizard__step-title">{t.contact.title}</h3><p class="wizard__step-subtitle">{t.contact.subtitle}</p><div class="wizard__form-grid"><div class="wizard__field"><label>{t.contact.firstName} *</label><input type="text" data-field="firstName" required /></div><div class="wizard__field"><label>{t.contact.lastName} *</label><input type="text" data-field="lastName" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.email} *</label><input type="email" data-field="email" required /></div><div class="wizard__field"><label>{t.contact.phone}</label><input type="tel" data-field="phone" /></div><div class="wizard__field"><label>{t.contact.country} *</label><input type="text" data-field="country" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.address} *</label><input type="text" data-field="address" required /></div><div class="wizard__field"><label>{t.contact.zip} *</label><input type="text" data-field="zip" required /></div><div class="wizard__field"><label>{t.contact.city} *</label><input type="text" data-field="city" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.message}</label><textarea data-field="message" rows="3"></textarea></div></div><div class="wizard__error" data-error="contact"></div></div>
       <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.reminder.title}</h3><p class="wizard__step-subtitle">{t.reminder.subtitle}</p><label class="wizard__checkbox"><input type="checkbox" data-field="reminderAccepted" /><span>{t.reminder.accept}</span></label><div class="wizard__error" data-error="reminder"></div></div>
-      <div class="wizard__step" data-step="8"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div></div>
+      <div class="wizard__step" data-step="8"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div><div class="cf-turnstile" data-sitekey="0x4AAAAAACu25Rq3oX0bSdba" data-size="invisible"></div></div>
       <div class="wizard__nav"><button class="wizard__nav-btn wizard__nav-back" type="button">{t.nav.back}</button><button class="wizard__nav-btn wizard__nav-next btn" type="button">{t.nav.next}</button></div>
     </div>
 
@@ -69,7 +70,7 @@ const creativePersons = [1, 2, 3, 4];
       <div class="wizard__step" data-step="4"><h3 class="wizard__step-title">{t.contact.title}</h3><p class="wizard__step-subtitle">{t.contact.subtitle}</p><div class="wizard__form-grid"><div class="wizard__field"><label>{t.contact.firstName} *</label><input type="text" data-field="firstName" required /></div><div class="wizard__field"><label>{t.contact.lastName} *</label><input type="text" data-field="lastName" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.email} *</label><input type="email" data-field="email" required /></div><div class="wizard__field"><label>{t.contact.phone}</label><input type="tel" data-field="phone" /></div><div class="wizard__field"><label>{t.contact.country} *</label><input type="text" data-field="country" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.address} *</label><input type="text" data-field="address" required /></div><div class="wizard__field"><label>{t.contact.zip} *</label><input type="text" data-field="zip" required /></div><div class="wizard__field"><label>{t.contact.city} *</label><input type="text" data-field="city" required /></div><div class="wizard__field wizard__field--full"><label>{t.contact.message}</label><textarea data-field="message" rows="3"></textarea></div></div><div class="wizard__error" data-error="contact"></div></div>
       <div class="wizard__step" data-step="5"><h3 class="wizard__step-title">{t.shipping.title}</h3><p class="wizard__step-subtitle">{t.shipping.subtitle}</p><div class="wizard__options" data-field="shipping"><button class="wizard__option" data-value="switzerland">{t.shipping.switzerland}</button><button class="wizard__option" data-value="europe">{t.shipping.europe}</button><button class="wizard__option" data-value="worldwide">{t.shipping.worldwide}</button></div><div class="wizard__error" data-error="shipping"></div></div>
       <div class="wizard__step" data-step="6"><h3 class="wizard__step-title">{t.reminder.title}</h3><p class="wizard__step-subtitle">{t.reminder.subtitle}</p><label class="wizard__checkbox"><input type="checkbox" data-field="reminderAccepted" /><span>{t.reminder.accept}</span></label><div class="wizard__error" data-error="reminder"></div></div>
-      <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div></div>
+      <div class="wizard__step" data-step="7"><h3 class="wizard__step-title">{t.summary.title}</h3><p class="wizard__step-subtitle">{t.summary.subtitle}</p><div class="wizard__summary"></div><div class="cf-turnstile" data-sitekey="0x4AAAAAACu25Rq3oX0bSdba" data-size="invisible"></div></div>
       <div class="wizard__nav"><button class="wizard__nav-btn wizard__nav-back" type="button">{t.nav.back}</button><button class="wizard__nav-btn wizard__nav-next btn" type="button">{t.nav.next}</button></div>
     </div>
 
@@ -161,7 +162,7 @@ document.querySelectorAll('.wizard').forEach(wizardEl => {
   const btnBack = wizardEl.querySelector('.wizard__nav-back');
   let currentStep = 1;
   let formData = {};
-  let uploadedFiles = [];
+  let uploadedFile = null;
 
   function showStep(n) {
     currentStep = n;
@@ -198,38 +199,19 @@ document.querySelectorAll('.wizard').forEach(wizardEl => {
     const preview = dropzone.querySelector('.wizard__preview');
     const previewImg = dropzone.querySelector('.wizard__preview-img');
     const changeBtn = dropzone.querySelector('.wizard__preview-change');
-    fileInput.setAttribute('multiple', 'true');
-    dropzone.addEventListener('click', (e) => { if (e.target === changeBtn || e.target.closest('.wizard__preview-change')) fileInput.click(); else if (!uploadedFiles.length) fileInput.click(); });
+    dropzone.addEventListener('click', (e) => { if (e.target === changeBtn || e.target.closest('.wizard__preview-change')) fileInput.click(); else if (!uploadedFile) fileInput.click(); });
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('is-dragover'); });
     dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
-    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('is-dragover'); handleFiles(Array.from(e.dataTransfer.files)); });
-    fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFiles(Array.from(fileInput.files)); });
+    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('is-dragover'); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
     if (changeBtn) changeBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
-    function handleFiles(files) {
-      const validFiles = files.filter(f => f.type.match(/^image\/(png|jpeg|webp)$/) && f.size <= 20 * 1024 * 1024);
-      if (!validFiles.length) return;
-      const combined = [...uploadedFiles, ...validFiles].slice(0, 10);
-      uploadedFiles = combined;
-      formData.image = uploadedFiles.map(f => f.name).join(', ');
-      content.style.display = 'none'; preview.style.display = 'flex';
-      previewImg.style.display = 'none';
-      let grid = preview.querySelector('.wizard__preview-grid');
-      if (!grid) { grid = document.createElement('div'); grid.className = 'wizard__preview-grid'; preview.insertBefore(grid, changeBtn); }
-      grid.innerHTML = '';
-      uploadedFiles.forEach((file, i) => {
-        const thumb = document.createElement('div'); thumb.className = 'wizard__preview-thumb';
-        const img = document.createElement('img');
-        const reader = new FileReader();
-        reader.onload = (e) => { img.src = e.target.result; };
-        reader.readAsDataURL(file);
-        const removeBtn = document.createElement('button'); removeBtn.type = 'button'; removeBtn.className = 'wizard__preview-remove'; removeBtn.textContent = '×';
-        removeBtn.addEventListener('click', (e) => { e.stopPropagation(); uploadedFiles.splice(i, 1); formData.image = uploadedFiles.map(f => f.name).join(', '); handleFiles([]); if (!uploadedFiles.length) { content.style.display = 'flex'; preview.style.display = 'none'; } });
-        thumb.appendChild(img); thumb.appendChild(removeBtn); grid.appendChild(thumb);
-      });
-      const countLabel = preview.querySelector('.wizard__preview-count') || document.createElement('small');
-      countLabel.className = 'wizard__preview-count';
-      countLabel.textContent = uploadedFiles.length + ' / 10 images';
-      if (!preview.querySelector('.wizard__preview-count')) preview.insertBefore(countLabel, changeBtn);
+    function handleFile(file) {
+      if (!file.type.match(/^image\/(png|jpeg)$/)) return;
+      if (file.size > 20 * 1024 * 1024) return;
+      uploadedFile = file; formData.image = file.name;
+      const reader = new FileReader();
+      reader.onload = (e) => { previewImg.src = e.target.result; content.style.display = 'none'; preview.style.display = 'flex'; };
+      reader.readAsDataURL(file);
     }
   }
 
@@ -272,26 +254,14 @@ document.querySelectorAll('.wizard').forEach(wizardEl => {
     if (formData.format) h += row(summaryLabels.format, FORMAT_LABELS[formData.format] || formData.format);
     if (formData.people) h += row(summaryLabels.people, formData.people);
     if (formData.shipping) h += row(summaryLabels.shipping, SHIPPING_LABELS[formData.shipping] || formData.shipping);
-    if (formData.image) h += row(summaryLabels.image, '<span class="summary__check">✓</span> ' + uploadedFiles.length + ' image(s)');
+    if (formData.image) h += row(summaryLabels.image, '<span class="summary__check">✓</span> ' + formData.image);
     h += '</div></div>';
 
-    // Section 1b: Idea (creative only) or noIdea
-    if (formData.idea || formData.noIdea) {
+    // Section 1b: Idea (creative only)
+    if (formData.idea) {
       h += '<div class="summary__card">';
       h += '<div class="summary__card-header">' + summaryLabels.idea + '</div>';
-      if (formData.noIdea) {
-        h += '<div class="summary__card-body"><p class="summary__idea-text" style="font-style:italic;">Would like consultation — no specific idea yet.</p></div>';
-      } else {
-        h += '<div class="summary__card-body"><p class="summary__idea-text">' + formData.idea + '</p></div>';
-      }
-      h += '</div>';
-    }
-
-    // Section 1c: Message / Remark
-    if (formData.message) {
-      h += '<div class="summary__card">';
-      h += '<div class="summary__card-header">Remarks</div>';
-      h += '<div class="summary__card-body"><p class="summary__idea-text">' + formData.message + '</p></div>';
+      h += '<div class="summary__card-body"><p class="summary__idea-text">' + formData.idea + '</p></div>';
       h += '</div>';
     }
 
@@ -334,9 +304,8 @@ document.querySelectorAll('.wizard').forEach(wizardEl => {
       const body = new FormData();
       // Order data
       body.append('package', pkg);
-      const fieldsToCopy = ['size', 'format', 'people', 'shipping', 'idea', 'message', 'firstName', 'lastName', 'email', 'phone', 'address', 'zip', 'city', 'country'];
+      const fieldsToCopy = ['size', 'format', 'people', 'shipping', 'idea', 'firstName', 'lastName', 'email', 'phone', 'address', 'zip', 'city', 'country'];
       fieldsToCopy.forEach(f => { if (formData[f]) body.append(f, formData[f]); });
-      if (formData.noIdea) body.append('noIdea', 'true');
       body.append('locale', 'en');
       // Prices
       const price = calcPrice();
@@ -347,8 +316,12 @@ document.querySelectorAll('.wizard').forEach(wizardEl => {
         body.append('shippingPrice', String(price.shipping));
         body.append('totalPrice', String(price.total));
       }
-      // Images (multiple)
-      uploadedFiles.forEach(f => body.append('images', f));
+      // Image
+      if (uploadedFile) body.append('image', uploadedFile);
+
+      // Turnstile token
+      const turnstileInput = document.querySelector('[name="cf-turnstile-response"]');
+      if (turnstileInput) body.append('cf-turnstile-response', turnstileInput.value);
 
       const res = await fetch('/api/order', { method: 'POST', body });
       const result = await res.json();
@@ -420,11 +393,6 @@ if (hash && document.getElementById('wizard-' + hash)) document.querySelector(`[
   .wizard__preview-img { max-height: 200px; max-width: 100%; border-radius: var(--radius-sm); object-fit: contain; }
   .wizard__preview-change { background: none; border: 1px solid var(--color-border); padding: var(--space-xs) var(--space-md); font-size: var(--text-xs); border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition-fast); }
   .wizard__preview-change:hover { border-color: var(--color-black); }
-  .wizard__preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; width: 100%; margin-bottom: 12px; }
-  .wizard__preview-thumb { position: relative; aspect-ratio: 1; border-radius: 4px; overflow: hidden; }
-  .wizard__preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .wizard__preview-remove { position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff; border: none; cursor: pointer; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; }
-  .wizard__preview-count { font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: 8px; }
   .wizard__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
   .wizard__field--full { grid-column: 1 / -1; }
   .wizard__field label { display: block; font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.04em; color: var(--color-text-secondary); margin-bottom: var(--space-xs); text-transform: uppercase; }

@@ -2,7 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import cvData from '@/data/cv.json';
 const locale = 'en';
-const pageTitle = 'Curriculum Vitae';
+const pageTitle = 'CV';
 
 const totalAwards = cvData.awards.length;
 const totalExhibitions = cvData.solo_exhibitions.length + cvData.group_exhibitions.length;
@@ -14,11 +14,11 @@ const countries = new Set(allVenues.map(v => {
 const totalCountries = countries.size;
 ---
 
-<BaseLayout title={pageTitle} locale={locale} description="Curriculum Vitae of Fabienne Meyer – Awards, exhibitions and publications.">
+<BaseLayout title={pageTitle} locale={locale} description="CV of Fabienne Meyer – Awards, exhibitions and publications.">
 
   <section class="cv-hero">
     <div class="container">
-      <h1 class="cv-hero__title">Curriculum Vitae</h1>
+      <h1 class="cv-hero__title">CV</h1>
       <p class="cv-hero__subtitle">Fabienne Meyer · *1998 · Zurich, Switzerland</p>
     </div>
   </section>

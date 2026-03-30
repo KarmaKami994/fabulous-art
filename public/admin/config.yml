@@ -209,3 +209,31 @@ collections:
               - { label: "Initial", name: initial, widget: string, hint: "Erster Buchstabe" }
               - { label: "Text (DE)", name: text_de, widget: text }
               - { label: "Text (EN)", name: text_en, widget: text }
+
+  # ============================================
+  # NEWS / BLOG
+  # ============================================
+  - name: news
+    label: "News / Blog"
+    files:
+      - name: news_posts
+        label: "News-Beiträge"
+        file: src/data/news.json
+        format: json
+        fields:
+          - label: "Beiträge"
+            name: posts
+            widget: list
+            summary: "{{fields.title_de}} ({{fields.date}})"
+            fields:
+              - { label: "Titel (DE)", name: title_de, widget: string }
+              - { label: "Titel (EN)", name: title_en, widget: string }
+              - { label: "Slug (URL)", name: slug, widget: string, hint: "Kleinbuchstaben, Bindestriche, keine Leerzeichen. z.B. 'swiss-art-expo-2026'" }
+              - { label: "Datum", name: date, widget: datetime, format: "YYYY-MM-DD", date_format: "DD.MM.YYYY", time_format: false }
+              - { label: "Titelbild", name: image, widget: image, required: false, hint: "Optional. Wird oben im Beitrag und in der Übersicht angezeigt." }
+              - { label: "YouTube URL", name: youtube, widget: string, required: false, hint: "Optional. z.B. https://www.youtube.com/watch?v=XXXXXX" }
+              - { label: "Teaser (DE)", name: excerpt_de, widget: text, hint: "Kurze Zusammenfassung für die Übersicht (2-3 Sätze)" }
+              - { label: "Teaser (EN)", name: excerpt_en, widget: text }
+              - { label: "Inhalt (DE)", name: body_de, widget: text }
+              - { label: "Inhalt (EN)", name: body_en, widget: text }
+              - { label: "Veröffentlicht", name: published, widget: boolean, default: true }

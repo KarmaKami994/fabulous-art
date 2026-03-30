@@ -1,0 +1,95 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import newsData from '@/data/news.json';
+
+export function getStaticPaths() {
+  return newsData.posts
+    .filter(p => p.published)
+    .map(p => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const locale = 'de';
+
+const post = newsData.posts.find(p => p.slug === slug && p.published);
+if (!post) return Astro.redirect('/de/news');
+
+const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getDate()}. ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+const youtubeId = getYouTubeId(post.youtube || '');
+---
+
+<BaseLayout title={post.title_de} locale={locale} description={post.excerpt_de} ogType="article">
+
+  <article class="news-article">
+    <div class="container container--narrow">
+
+      <a href="/de/news" class="news-article__back">← Zurück zu News</a>
+
+      <header class="news-article__header">
+        <time class="news-article__date" datetime={post.date}>{formatDate(post.date)}</time>
+        <h1 class="news-article__title">{post.title_de}</h1>
+      </header>
+
+      {post.image && (
+        <div class="news-article__hero-image">
+          <img src={post.image} alt={post.title_de} />
+        </div>
+      )}
+
+      {youtubeId && (
+        <div class="news-article__video">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+            title={post.title_de}
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      )}
+
+      <div class="news-article__body">
+        {post.body_de.split('\n\n').map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
+
+      <footer class="news-article__footer">
+        <a href="/de/news" class="btn btn--outline">← Alle News</a>
+      </footer>
+
+    </div>
+  </article>
+
+</BaseLayout>
+
+<style>
+  .news-article { padding-top: calc(var(--header-height) + var(--space-3xl)); padding-bottom: var(--space-4xl); }
+  .news-article__back { display: inline-block; font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-2xl); transition: color var(--transition-fast); }
+  .news-article__back:hover { color: var(--color-black); }
+  .news-article__header { margin-bottom: var(--space-2xl); }
+  .news-article__date { font-family: var(--font-body); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); }
+  .news-article__title { font-family: var(--font-heading); font-size: var(--text-4xl); font-weight: 300; line-height: 1.2; margin-top: var(--space-sm); }
+  .news-article__hero-image { margin-bottom: var(--space-2xl); border-radius: var(--radius-md); overflow: hidden; }
+  .news-article__hero-image img { width: 100%; height: auto; display: block; }
+  .news-article__video { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: var(--space-2xl); border-radius: var(--radius-md); }
+  .news-article__video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+  .news-article__body { font-size: var(--text-base); line-height: 1.8; color: var(--color-text); }
+  .news-article__body p { margin-bottom: var(--space-lg); max-width: none; }
+  .news-article__footer { margin-top: var(--space-3xl); padding-top: var(--space-xl); border-top: 1px solid var(--color-border); }
+  @media (max-width: 768px) {
+    .news-article { padding-top: calc(var(--header-height) + var(--space-xl)); }
+    .news-article__title { font-size: var(--text-3xl); }
+  }
+</style>

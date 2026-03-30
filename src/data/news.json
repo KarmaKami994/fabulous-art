@@ -1,16 +1,29 @@
 {
   "posts": [
     {
-      "title_de": "TEST",
-      "title_en": "TEST",
-      "slug": "TEST",
-      "date": "2026-03-30",
-      "image": "/images/cms/TheStain.png",
+      "title_de": "Neue Ausstellung: Swiss Art Expo 2026",
+      "title_en": "New Exhibition: Swiss Art Expo 2026",
+      "slug": "swiss-art-expo-2026",
+      "date": "2026-03-15",
+      "image": "",
       "youtube": "",
-      "excerpt_de": "TESTTESTTESTTESTTESTTEST",
-      "excerpt_en": "TESTTESTTESTTESTTEST",
-      "body_de": "TESTTESTTESTTESTTEST",
-      "body_en": "TESTTESTTESTTESTTEST",
+      "excerpt_de": "Ich freue mich, Teil der diesjährigen Swiss Art Expo in Zürich zu sein. Besucht mich vom 20. bis 23. März am Stand 42.",
+      "excerpt_en": "I'm excited to be part of this year's Swiss Art Expo in Zurich. Visit me from March 20-23 at booth 42.",
+      "body_de": "Ich freue mich, Teil der diesjährigen Swiss Art Expo in Zürich zu sein. Besucht mich vom 20. bis 23. März am Stand 42.\n\nDieses Jahr zeige ich drei neue Werke aus meiner aktuellen Serie. Die Ausstellung findet im Kongresshaus Zürich statt und der Eintritt ist frei.\n\nIch freue mich auf euren Besuch!",
+      "body_en": "I'm excited to be part of this year's Swiss Art Expo in Zurich. Visit me from March 20-23 at booth 42.\n\nThis year I'm showing three new works from my current series. The exhibition takes place at the Kongresshaus Zurich and admission is free.\n\nLooking forward to seeing you there!",
+      "published": true
+    },
+    {
+      "title_de": "Behind the Scenes: Entstehung von 'The Graces'",
+      "title_en": "Behind the Scenes: Creating 'The Graces'",
+      "slug": "behind-the-scenes-the-graces",
+      "date": "2026-02-28",
+      "image": "",
+      "youtube": "",
+      "excerpt_de": "Ein Einblick in den kreativen Prozess hinter meinem neusten Werk 'The Graces' — von der ersten Skizze bis zum fertigen Werk.",
+      "excerpt_en": "A look into the creative process behind my latest work 'The Graces' — from the first sketch to the finished piece.",
+      "body_de": "Die Arbeit an 'The Graces' war eine Reise über mehrere Monate. Inspiriert von den antiken griechischen Göttinnen wollte ich Anmut und Verbindung einfangen.\n\nDer Prozess begann mit zahlreichen Skizzen und Referenzfotos. Die grösste Herausforderung war es, die Bewegung der drei Figuren als Einheit darzustellen.\n\nNach über 200 Stunden intensiver Arbeit mit Kohle auf Papier war das Werk vollendet.",
+      "body_en": "Working on 'The Graces' was a journey spanning several months. Inspired by the ancient Greek goddesses, I wanted to capture grace and connection.\n\nThe process began with numerous sketches and reference photos. The biggest challenge was portraying the movement of the three figures as one unit.\n\nAfter over 200 hours of intensive work with charcoal on paper, the piece was complete.",
       "published": true
     }
   ]

@@ -26,7 +26,21 @@ function getYouTubeId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+function renderMarkdown(md: string): string {
+  return md
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy" style="width:100%;height:auto;border-radius:var(--radius-md);margin:var(--space-lg) 0;" />')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .split(/\n\n+/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+    .map(p => p.startsWith('<img') ? p : `<p>${p.replace(/\n/g, '<br>')}</p>`)
+    .join('\n');
+}
+
 const youtubeId = getYouTubeId(post.youtube || '');
+const bodyHtml = renderMarkdown(post.body_en);
 ---
 
 <BaseLayout title={post.title_en} locale={locale} description={post.excerpt_en} ogType="article">
@@ -59,11 +73,7 @@ const youtubeId = getYouTubeId(post.youtube || '');
         </div>
       )}
 
-      <div class="news-article__body">
-        {post.body_en.split('\n\n').map((paragraph) => (
-          <p>{paragraph}</p>
-        ))}
-      </div>
+      <div class="news-article__body" set:html={bodyHtml} />
 
       <footer class="news-article__footer">
         <a href="/en/news" class="btn btn--outline">← All News</a>

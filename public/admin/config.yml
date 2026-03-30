@@ -234,6 +234,6 @@ collections:
               - { label: "YouTube URL", name: youtube, widget: string, required: false, hint: "Optional. z.B. https://www.youtube.com/watch?v=XXXXXX" }
               - { label: "Teaser (DE)", name: excerpt_de, widget: text, hint: "Kurze Zusammenfassung für die Übersicht (2-3 Sätze)" }
               - { label: "Teaser (EN)", name: excerpt_en, widget: text }
-              - { label: "Inhalt (DE)", name: body_de, widget: text }
-              - { label: "Inhalt (EN)", name: body_en, widget: text }
+              - { label: "Inhalt (DE)", name: body_de, widget: markdown }
+              - { label: "Inhalt (EN)", name: body_en, widget: markdown }
               - { label: "Veröffentlicht", name: published, widget: boolean, default: true }

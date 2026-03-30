@@ -31,13 +31,6 @@ function formatArchiveLabel(key: string): string {
 
 <BaseLayout title="News" locale={locale} description="Neuigkeiten, Ausstellungen und Einblicke von Fabienne Meyer — FABulousART.">
 
-  <section class="news-hero">
-    <div class="container">
-      <h1 class="news-hero__title">News</h1>
-      <p class="news-hero__subtitle">Neuigkeiten, Ausstellungen und Einblicke</p>
-    </div>
-  </section>
-
   <section class="news-content section">
     <div class="container news-content__grid">
 
@@ -82,12 +75,7 @@ function formatArchiveLabel(key: string): string {
 </BaseLayout>
 
 <style>
-  .news-hero { padding-top: calc(var(--header-height) + var(--space-5xl)); padding-bottom: var(--space-4xl); background: var(--color-black); color: var(--color-white); text-align: center; }
-  .news-hero__title { font-family: var(--font-heading); font-size: var(--text-5xl); font-weight: 300; letter-spacing: 0.08em; margin-bottom: var(--space-md); animation: fadeUp 1s ease forwards; }
-  .news-hero__subtitle { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-gray-400); max-width: none; animation: fadeUp 1s ease 0.15s forwards; opacity: 0; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-  .news-content { padding-block: var(--space-4xl); }
+  .news-content { padding-top: calc(var(--header-height) + var(--space-3xl)); padding-bottom: var(--space-4xl); }
   .news-content__grid { display: grid; grid-template-columns: 1fr 260px; gap: var(--space-3xl); align-items: start; }
 
   .news-list { display: flex; flex-direction: column; gap: 0; }
@@ -116,6 +104,5 @@ function formatArchiveLabel(key: string): string {
   @media (max-width: 768px) {
     .news-content__grid { grid-template-columns: 1fr; }
     .news-archive { position: static; order: -1; margin-bottom: var(--space-xl); }
-    .news-hero { padding-top: calc(var(--header-height) + var(--space-3xl)); padding-bottom: var(--space-3xl); }
   }
 </style>

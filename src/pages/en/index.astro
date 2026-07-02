@@ -41,31 +41,37 @@ function formatDate(dateStr: string): string {
   <section class="parallax-teaser section">
     <div class="container">
       <div class="parallax-teaser__floating" id="floating-container">
-        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.3" style="top: 5%; left: 2%; width: 28%;">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.3" style="top: 3%; left: 2%; width: 22%;">
           <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Thedanceofeternaltreads.png" alt="The Dance of Eternal Threads" loading="lazy" />
         </a>
-        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.2" style="top: 8%; right: 5%; width: 22%;">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.2" style="top: 2%; left: 28%; width: 18%;">
           <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Purity.png" alt="Purity" loading="lazy" />
         </a>
-        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.7" style="top: 35%; left: 18%; width: 20%;">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.8" style="top: 5%; right: 18%; width: 22%;">
           <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/fragile.jpg" alt="Fragile" loading="lazy" />
         </a>
-        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.8" style="top: 30%; right: 18%; width: 18%;">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.5" style="top: 3%; right: 1%; width: 14%;">
           <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Bornintowaste.png" alt="Born into Waste" loading="lazy" />
         </a>
-        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.5" style="bottom: 8%; left: 8%; width: 24%;">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.5" style="top: 40%; left: 1%; width: 18%;">
           <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/TheGraces.png" alt="The Graces" loading="lazy" />
         </a>
-        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.5" style="bottom: 5%; right: 2%; width: 26%;">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.8" style="top: 38%; right: 2%; width: 16%;">
           <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Insidethebox.png" alt="Inside the Box" loading="lazy" />
         </a>
-        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="2.0" style="top: 42%; left: 42%; width: 16%;">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.6" style="bottom: 3%; left: 5%; width: 20%;">
           <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Human.png" alt="Human" loading="lazy" />
         </a>
-        <div class="parallax-teaser__cta">
-          <a href="/en/portfolio">
-            <h3>{t(locale, 'home.portfolioTeaser')}</h3>
-            <span class="parallax-teaser__arrow">→</span>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="2.0" style="bottom: 2%; left: 32%; width: 16%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Satisfaction.png" alt="Satisfaction" loading="lazy" />
+        </a>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.4" style="bottom: 4%; right: 12%; width: 22%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Freedom.png" alt="Freedom" loading="lazy" />
+        </a>
+        <div class="parallax-teaser__center">
+          <a href="/en/portfolio" class="parallax-teaser__title-link">
+            <h2 class="parallax-teaser__title">Portfolio</h2>
+            <span class="parallax-teaser__subtitle">{t(locale, 'home.portfolioTeaser')} →</span>
           </a>
         </div>
       </div>
@@ -194,17 +200,16 @@ function formatDate(dateStr: string): string {
   }
 
   /* Portfolio Teaser — Parallax Floating */
-  .parallax-teaser__floating { position: relative; height: 600px; overflow: hidden; border-radius: var(--radius-md); background: var(--color-gray-50); }
-  .parallax-teaser__item { position: absolute; display: block; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); transition: box-shadow 0.3s ease; will-change: transform; }
-  .parallax-teaser__item:hover { box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15); z-index: 10; }
+  .parallax-teaser__floating { position: relative; height: 650px; overflow: hidden; border-radius: var(--radius-md); background: var(--color-black); }
+  .parallax-teaser__item { position: absolute; display: block; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); transition: box-shadow 0.3s ease; will-change: transform; }
+  .parallax-teaser__item:hover { box-shadow: 0 8px 40px rgba(255, 255, 255, 0.1); z-index: 10; }
   .parallax-teaser__item img { width: 100%; height: auto; display: block; transition: transform 0.4s ease; }
   .parallax-teaser__item:hover img { transform: scale(1.05); }
-  .parallax-teaser__cta { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; text-align: center; }
-  .parallax-teaser__cta a { display: inline-flex; align-items: center; gap: var(--space-sm); padding: var(--space-md) var(--space-2xl); background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); border-radius: 100px; transition: background 0.3s ease, transform 0.3s ease; text-decoration: none; }
-  .parallax-teaser__cta a:hover { background: rgba(255, 255, 255, 1); transform: scale(1.05); }
-  .parallax-teaser__cta h3 { font-family: var(--font-heading); font-size: var(--text-xl); font-weight: 400; color: var(--color-black); margin: 0; }
-  .parallax-teaser__arrow { font-size: var(--text-xl); color: var(--color-black); transition: transform 0.3s ease; }
-  .parallax-teaser__cta a:hover .parallax-teaser__arrow { transform: translateX(4px); }
+  .parallax-teaser__center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3; text-align: center; }
+  .parallax-teaser__title-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: var(--space-md); }
+  .parallax-teaser__title { font-family: var(--font-heading); font-size: clamp(3.5rem, 8vw, 7rem); font-weight: 300; font-style: italic; color: var(--color-white); letter-spacing: 0.04em; margin: 0; line-height: 1; text-shadow: 0 2px 40px rgba(0, 0, 0, 0.5); }
+  .parallax-teaser__subtitle { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 400; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-gray-400); transition: color 0.3s ease; }
+  .parallax-teaser__title-link:hover .parallax-teaser__subtitle { color: var(--color-white); }
 
   .packages__title {
     text-align: center;
@@ -247,9 +252,9 @@ function formatDate(dateStr: string): string {
   }
   @media (max-width: 768px) {
     .hero { min-height: 500px; }
-    .parallax-teaser__floating { height: 400px; }
-    .parallax-teaser__item { width: 30% !important; }
-    .parallax-teaser__cta h3 { font-size: var(--text-base); }
+    .parallax-teaser__floating { height: 450px; }
+    .parallax-teaser__item { width: 25% !important; }
+    .parallax-teaser__title { font-size: 2.5rem; }
   }
 
   /* News Teaser */

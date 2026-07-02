@@ -37,18 +37,38 @@ function formatDate(dateStr: string): string {
     </div>
   </section>
 
-  <!-- Portfolio Teaser -->
-  <section class="teaser section fade-in">
+  <!-- Portfolio Teaser — Parallax Floating -->
+  <section class="parallax-teaser section">
     <div class="container">
-      <a href="/en/portfolio" class="teaser__card">
-        <div class="teaser__image">
-          <img src="/images/portfolio/landingpage.png" alt="Portfolio" loading="lazy" />
+      <div class="parallax-teaser__floating" id="floating-container">
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.3" style="top: 5%; left: 2%; width: 28%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Thedanceofeternaltreads.png" alt="The Dance of Eternal Threads" loading="lazy" />
+        </a>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.2" style="top: 8%; right: 5%; width: 22%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Purity.png" alt="Purity" loading="lazy" />
+        </a>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.7" style="top: 35%; left: 18%; width: 20%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/fragile.jpg" alt="Fragile" loading="lazy" />
+        </a>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.8" style="top: 30%; right: 18%; width: 18%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Bornintowaste.png" alt="Born into Waste" loading="lazy" />
+        </a>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="0.5" style="bottom: 8%; left: 8%; width: 24%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/TheGraces.png" alt="The Graces" loading="lazy" />
+        </a>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="1.5" style="bottom: 5%; right: 2%; width: 26%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Insidethebox.png" alt="Inside the Box" loading="lazy" />
+        </a>
+        <a href="/en/portfolio" class="parallax-teaser__item" data-depth="2.0" style="top: 42%; left: 42%; width: 16%;">
+          <img src="https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev/portfolio/Thumbnail/Human.png" alt="Human" loading="lazy" />
+        </a>
+        <div class="parallax-teaser__cta">
+          <a href="/en/portfolio">
+            <h3>{t(locale, 'home.portfolioTeaser')}</h3>
+            <span class="parallax-teaser__arrow">→</span>
+          </a>
         </div>
-        <div class="teaser__label">
-          <h3>{t(locale, 'home.portfolioTeaser')}</h3>
-          <span class="teaser__arrow">&rarr;</span>
-        </div>
-      </a>
+      </div>
     </div>
   </section>
 
@@ -173,44 +193,18 @@ function formatDate(dateStr: string): string {
     max-width: 60ch;
   }
 
-  .teaser__card {
-    display: block;
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--radius-md);
-    aspect-ratio: 21 / 9;
-    background: var(--color-gray-100);
-  }
-
-  .teaser__image { position: absolute; inset: 0; }
-  .teaser__image img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transition: transform var(--transition-slow);
-  }
-  .teaser__card:hover .teaser__image img { transform: scale(1.03); }
-
-  .teaser__label {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    padding: var(--space-xl) var(--space-2xl);
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .teaser__label h3 {
-    font-family: var(--font-heading);
-    font-size: var(--text-2xl);
-    color: var(--color-white);
-    font-weight: 400;
-  }
-  .teaser__arrow {
-    font-size: var(--text-2xl);
-    color: var(--color-white);
-    transition: transform var(--transition-base);
-  }
-  .teaser__card:hover .teaser__arrow { transform: translateX(8px); }
+  /* Portfolio Teaser — Parallax Floating */
+  .parallax-teaser__floating { position: relative; height: 600px; overflow: hidden; border-radius: var(--radius-md); background: var(--color-gray-50); }
+  .parallax-teaser__item { position: absolute; display: block; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); transition: box-shadow 0.3s ease; will-change: transform; }
+  .parallax-teaser__item:hover { box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15); z-index: 10; }
+  .parallax-teaser__item img { width: 100%; height: auto; display: block; transition: transform 0.4s ease; }
+  .parallax-teaser__item:hover img { transform: scale(1.05); }
+  .parallax-teaser__cta { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; text-align: center; }
+  .parallax-teaser__cta a { display: inline-flex; align-items: center; gap: var(--space-sm); padding: var(--space-md) var(--space-2xl); background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); border-radius: 100px; transition: background 0.3s ease, transform 0.3s ease; text-decoration: none; }
+  .parallax-teaser__cta a:hover { background: rgba(255, 255, 255, 1); transform: scale(1.05); }
+  .parallax-teaser__cta h3 { font-family: var(--font-heading); font-size: var(--text-xl); font-weight: 400; color: var(--color-black); margin: 0; }
+  .parallax-teaser__arrow { font-size: var(--text-xl); color: var(--color-black); transition: transform 0.3s ease; }
+  .parallax-teaser__cta a:hover .parallax-teaser__arrow { transform: translateX(4px); }
 
   .packages__title {
     text-align: center;
@@ -253,8 +247,9 @@ function formatDate(dateStr: string): string {
   }
   @media (max-width: 768px) {
     .hero { min-height: 500px; }
-    .teaser__card { aspect-ratio: 16 / 9; }
-    .teaser__label { padding: var(--space-md) var(--space-lg); }
+    .parallax-teaser__floating { height: 400px; }
+    .parallax-teaser__item { width: 30% !important; }
+    .parallax-teaser__cta h3 { font-size: var(--text-base); }
   }
 
   /* News Teaser */
@@ -267,3 +262,41 @@ function formatDate(dateStr: string): string {
   .news-teaser__headline { font-family: var(--font-heading); font-size: var(--text-xl); font-weight: 400; color: var(--color-text); margin-top: var(--space-xs); line-height: 1.3; }
   .news-teaser__excerpt { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: 1.6; margin-top: var(--space-xs); max-width: none; }
 </style>
+
+<script>
+  (function() {
+    const container = document.getElementById('floating-container');
+    if (!container) return;
+    const items = container.querySelectorAll('[data-depth]');
+    if (!items.length) return;
+    const sensitivity = 40;
+    const easingFactor = 0.06;
+    let mouseX = 0.5, mouseY = 0.5;
+    const positions = new Map();
+    items.forEach(item => positions.set(item, { x: 0, y: 0 }));
+    container.addEventListener('mousemove', (e) => {
+      const rect = container.getBoundingClientRect();
+      mouseX = (e.clientX - rect.left) / rect.width;
+      mouseY = (e.clientY - rect.top) / rect.height;
+    });
+    container.addEventListener('mouseleave', () => { mouseX = 0.5; mouseY = 0.5; });
+    container.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      const rect = container.getBoundingClientRect();
+      mouseX = (touch.clientX - rect.left) / rect.width;
+      mouseY = (touch.clientY - rect.top) / rect.height;
+    }, { passive: true });
+    function lerp(s, e, f) { return s + (e - s) * f; }
+    function animate() {
+      items.forEach(item => {
+        const depth = parseFloat(item.dataset.depth) || 1;
+        const pos = positions.get(item);
+        pos.x = lerp(pos.x, (mouseX - 0.5) * sensitivity * depth, easingFactor);
+        pos.y = lerp(pos.y, (mouseY - 0.5) * sensitivity * depth, easingFactor);
+        item.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+      });
+      requestAnimationFrame(animate);
+    }
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) requestAnimationFrame(animate);
+  })();
+</script>

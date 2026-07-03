@@ -1,0 +1,105 @@
+---
+/**
+ * Shared news article view for both locales.
+ * Rendering, date formatting and markdown handling live in src/lib.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { formatDate } from '@/lib/format';
+import { renderMarkdown, getYouTubeId } from '@/lib/markdown';
+import type { Locale } from '@/i18n/utils';
+
+interface Post {
+  slug: string;
+  date: string;
+  published: boolean;
+  image?: string;
+  youtube?: string;
+  title_de: string;
+  title_en: string;
+  excerpt_de: string;
+  excerpt_en: string;
+  body_de: string;
+  body_en: string;
+}
+
+interface Props {
+  locale: Locale;
+  post: Post;
+}
+
+const { locale, post } = Astro.props;
+
+const title = locale === 'de' ? post.title_de : post.title_en;
+const excerpt = locale === 'de' ? post.excerpt_de : post.excerpt_en;
+const body = locale === 'de' ? post.body_de : post.body_en;
+const backLabel = locale === 'de' ? '← Zurück zu News' : '← Back to News';
+const allLabel = locale === 'de' ? '← Alle News' : '← All News';
+
+const youtubeId = getYouTubeId(post.youtube);
+const bodyHtml = renderMarkdown(body);
+---
+
+<BaseLayout title={title} locale={locale} description={excerpt} ogType="article">
+
+  <article class="news-article">
+    <div class="container container--narrow">
+
+      <a href={`/${locale}/news`} class="news-article__back">{backLabel}</a>
+
+      <header class="news-article__header">
+        <time class="news-article__date" datetime={post.date}>{formatDate(locale, post.date)}</time>
+        <h1 class="news-article__title">{title}</h1>
+      </header>
+
+      {post.image && (
+        <div class="news-article__hero-image">
+          <img src={post.image} alt={title} />
+        </div>
+      )}
+
+      {youtubeId && (
+        <div class="news-article__video">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+            title={title}
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      )}
+
+      <div class="news-article__body" set:html={bodyHtml} />
+
+      <footer class="news-article__footer">
+        <a href={`/${locale}/news`} class="btn btn--outline">{allLabel}</a>
+      </footer>
+
+    </div>
+  </article>
+
+</BaseLayout>
+
+<style>
+  .news-article { padding-top: calc(var(--header-height) + var(--space-3xl)); padding-bottom: var(--space-4xl); }
+  .news-article__back { display: inline-block; font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-2xl); transition: color var(--transition-fast); }
+  .news-article__back:hover { color: var(--color-black); }
+  .news-article__header { margin-bottom: var(--space-2xl); }
+  .news-article__date { font-family: var(--font-body); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); }
+  .news-article__title { font-family: var(--font-heading); font-size: var(--text-4xl); font-weight: 300; line-height: 1.2; margin-top: var(--space-sm); }
+  .news-article__hero-image { margin-bottom: var(--space-2xl); border-radius: var(--radius-md); overflow: hidden; }
+  .news-article__hero-image img { width: 100%; height: auto; display: block; }
+  .news-article__video { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: var(--space-2xl); border-radius: var(--radius-md); }
+  .news-article__video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+  .news-article__body { font-size: var(--text-base); line-height: 1.8; color: var(--color-text); }
+  .news-article__body :global(p) { margin-bottom: var(--space-lg); max-width: none; }
+  .news-article__body :global(img) { width: 100%; height: auto; border-radius: var(--radius-md); margin: var(--space-lg) 0; }
+  .news-article__body :global(h2), .news-article__body :global(h3) { font-family: var(--font-heading); font-weight: 400; margin: var(--space-xl) 0 var(--space-md); }
+  .news-article__body :global(ul), .news-article__body :global(ol) { margin: 0 0 var(--space-lg) var(--space-lg); }
+  .news-article__body :global(blockquote) { border-left: 3px solid var(--color-border); padding-left: var(--space-lg); color: var(--color-text-muted); margin-bottom: var(--space-lg); }
+  .news-article__footer { margin-top: var(--space-3xl); padding-top: var(--space-xl); border-top: 1px solid var(--color-border); }
+  @media (max-width: 768px) {
+    .news-article { padding-top: calc(var(--header-height) + var(--space-xl)); }
+    .news-article__title { font-size: var(--text-3xl); }
+  }
+</style>

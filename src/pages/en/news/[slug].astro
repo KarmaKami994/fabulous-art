@@ -1,105 +1,13 @@
 ---
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import NewsArticle from '@/components/NewsArticle.astro';
 import newsData from '@/data/news.json';
 
 export function getStaticPaths() {
-  return newsData.posts
-    .filter(p => p.published)
-    .map(p => ({ params: { slug: p.slug } }));
+  return newsData.posts.filter(p => p.published).map(p => ({ params: { slug: p.slug } }));
 }
 
 const { slug } = Astro.params;
-const locale = 'en';
-
 const post = newsData.posts.find(p => p.slug === slug && p.published);
 if (!post) return Astro.redirect('/en/news');
-
-const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
-
-function getYouTubeId(url: string): string | null {
-  if (!url) return null;
-  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : null;
-}
-
-function renderMarkdown(md: string): string {
-  return md
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" loading="lazy" style="width:100%;height:auto;border-radius:var(--radius-md);margin:var(--space-lg) 0;" />')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-    .split(/\n\n+/)
-    .map(p => p.trim())
-    .filter(p => p.length > 0)
-    .map(p => p.startsWith('<img') ? p : `<p>${p.replace(/\n/g, '<br>')}</p>`)
-    .join('\n');
-}
-
-const youtubeId = getYouTubeId(post.youtube || '');
-const bodyHtml = renderMarkdown(post.body_en);
 ---
-
-<BaseLayout title={post.title_en} locale={locale} description={post.excerpt_en} ogType="article">
-
-  <article class="news-article">
-    <div class="container container--narrow">
-
-      <a href="/en/news" class="news-article__back">← Back to News</a>
-
-      <header class="news-article__header">
-        <time class="news-article__date" datetime={post.date}>{formatDate(post.date)}</time>
-        <h1 class="news-article__title">{post.title_en}</h1>
-      </header>
-
-      {post.image && (
-        <div class="news-article__hero-image">
-          <img src={post.image} alt={post.title_en} />
-        </div>
-      )}
-
-      {youtubeId && (
-        <div class="news-article__video">
-          <iframe
-            src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
-            title={post.title_en}
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
-        </div>
-      )}
-
-      <div class="news-article__body" set:html={bodyHtml} />
-
-      <footer class="news-article__footer">
-        <a href="/en/news" class="btn btn--outline">← All News</a>
-      </footer>
-
-    </div>
-  </article>
-
-</BaseLayout>
-
-<style>
-  .news-article { padding-top: calc(var(--header-height) + var(--space-3xl)); padding-bottom: var(--space-4xl); }
-  .news-article__back { display: inline-block; font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: var(--space-2xl); transition: color var(--transition-fast); }
-  .news-article__back:hover { color: var(--color-black); }
-  .news-article__header { margin-bottom: var(--space-2xl); }
-  .news-article__date { font-family: var(--font-body); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); }
-  .news-article__title { font-family: var(--font-heading); font-size: var(--text-4xl); font-weight: 300; line-height: 1.2; margin-top: var(--space-sm); }
-  .news-article__hero-image { margin-bottom: var(--space-2xl); border-radius: var(--radius-md); overflow: hidden; }
-  .news-article__hero-image img { width: 100%; height: auto; display: block; }
-  .news-article__video { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin-bottom: var(--space-2xl); border-radius: var(--radius-md); }
-  .news-article__video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
-  .news-article__body { font-size: var(--text-base); line-height: 1.8; color: var(--color-text); }
-  .news-article__body p { margin-bottom: var(--space-lg); max-width: none; }
-  .news-article__footer { margin-top: var(--space-3xl); padding-top: var(--space-xl); border-top: 1px solid var(--color-border); }
-  @media (max-width: 768px) {
-    .news-article { padding-top: calc(var(--header-height) + var(--space-xl)); }
-    .news-article__title { font-size: var(--text-3xl); }
-  }
-</style>
+<NewsArticle locale="en" post={post} />

@@ -1,0 +1,673 @@
+---
+/**
+ * Commission wizards (Portrait / Couple & Family / Creative) — shared by
+ * de/custom-drawing.astro and en/custom-drawing.astro.
+ *
+ * Key properties:
+ *  - Step markup is generated from a config array (was previously 3× duplicated
+ *    per locale = 6 copies).
+ *  - Prices come exclusively from src/lib/pricing.ts → src/data/pricing.json
+ *    (CMS-editable). No inline price tables.
+ *  - Unavailable size/person combinations are disabled in the UI and blocked
+ *    at submit (getQuote() returns null — never CHF 0).
+ *  - The client sends no prices; the server recomputes authoritatively.
+ *  - Turnstile tokens are read per-wizard, with one reset+retry on failure.
+ */
+import { customDrawingTranslations as i18n } from '@/i18n/customDrawing';
+import type { Locale } from '@/i18n/utils';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = i18n[locale];
+
+const sizes = ['A3', 'A2', 'A1', 'A0'];
+const TURNSTILE_SITEKEY = '0x4AAAAAACu25Rq3oX0bSdba';
+
+type StepId = 'size' | 'people' | 'format' | 'picture' | 'idea' | 'contact' | 'shipping' | 'reminder' | 'summary';
+
+const wizards: { id: 'portrait' | 'family' | 'creative'; steps: StepId[]; people?: number[] }[] = [
+  { id: 'portrait', steps: ['size', 'format', 'picture', 'shipping', 'contact', 'reminder', 'summary'] },
+  { id: 'family', steps: ['size', 'people', 'format', 'picture', 'shipping', 'contact', 'reminder', 'summary'], people: [2, 3, 4, 5, 6, 7, 8, 9, 10] },
+  { id: 'creative', steps: ['size', 'people', 'idea', 'contact', 'shipping', 'reminder', 'summary'], people: [1, 2, 3, 4] },
+];
+
+const testimonials = {
+  de: {
+    title: 'Kundenstimmen',
+    items: [
+      { text: '«Vielen Dank, das Bild und die Arbeit, die Sie liefern, sind faszinierend und einzigartig. Ich bin so froh, dass ich mich mit meinem Anliegen an Sie gewandt habe.»', name: 'Karim Moutiq', role: 'Cloud Engineer' },
+      { text: '«Die Auftragszeichnung, die ich bestellt habe, war fantastisch. Sie hat meine Vorschläge perfekt umgesetzt und arbeitet sehr schnell.»', name: 'Ian Schneider', role: 'Polizeibeamter' },
+      { text: '«Vielen Dank an Fabulous Art! Am Anfang war ich besorgt, aber vom Ergebnis war ich überwältigt. Ich kann gar nicht ausdrücken, wie glücklich ich am Ende mit der Zeichnung bin!»', name: 'Florence Polla', role: 'Kundin' },
+    ],
+  },
+  en: {
+    title: 'Testimonials',
+    items: [
+      { text: '"Thank you many times, the picture and work you provide is mesmerizing and unique. I\'m so happy that I came to you with my request."', name: 'Karim Moutiq', role: 'Cloud Engineer' },
+      { text: '"The Custom Drawing I ordered was fantastic, she implemented my suggestions perfectly and she is a fast worker."', name: 'Ian Schneider', role: 'Police Officer' },
+      { text: '"Many thanks to Fabulous Art! I was worried in the beginning but stunned by the result. I cannot express how happy I am with the drawing in the end!"', name: 'Florence Polla', role: 'Customer' },
+    ],
+  },
+}[locale];
+
+// Everything the client script needs that is locale-dependent.
+const wizardConfig = {
+  locale,
+  summary: t.summary,
+  validation: t.validation,
+  nav: t.nav,
+  shippingLabels: { switzerland: t.shipping.switzerland, europe: t.shipping.europe, worldwide: t.shipping.worldwide },
+  formatLabels: { horizontal: t.format.horizontal, vertical: t.format.vertical },
+  pkgLabels: { portrait: 'Portrait', family: 'Couple / Family Portrait', creative: 'Creative Package' },
+};
+---
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<section class="cd-page">
+  <div class="container">
+    <header class="cd-page__header fade-in">
+      <h1 class="cd-page__title">{t.pageDesc}</h1>
+      <p class="cd-page__intro">{t.pageIntro}</p>
+      <div class="cd-page__promise">
+        <h2 class="cd-page__promise-title">{t.promiseTitle}</h2>
+        <ul class="cd-page__promise-list">
+          {t.promises.map((p: string) => <li><span class="cd-page__check">✓</span> {p}</li>)}
+        </ul>
+      </div>
+    </header>
+
+    <div class="cd-tabs fade-in" role="tablist">
+      {wizards.map((w, i) => (
+        <button class:list={['cd-tabs__btn', { 'is-active': i === 0 }]} role="tab" data-tab={w.id} aria-selected={i === 0 ? 'true' : 'false'} id={`tab-${w.id}`}>
+          {t.tabs[w.id]}
+        </button>
+      ))}
+    </div>
+
+    {wizards.map((w, wi) => (
+      <div class="wizard" id={`wizard-${w.id}`} data-package={w.id} role="tabpanel" aria-labelledby={`tab-${w.id}`} style={wi === 0 ? undefined : 'display:none;'}>
+        <div class="wizard__intro">
+          <p>{t[w.id].desc}</p>
+          {w.id === 'creative' && <p class="wizard__intro-note">{t.creative.includes}</p>}
+        </div>
+        <div class="wizard__progress" data-steps={String(w.steps.length)}>
+          <div class="wizard__progress-bar"><div class="wizard__progress-fill"></div></div>
+          <div class="wizard__steps-label"></div>
+        </div>
+
+        {w.steps.map((step, si) => (
+          <div class="wizard__step" data-step={String(si + 1)}>
+            {step === 'size' && (
+              <>
+                <h3 class="wizard__step-title">{t.size.title}</h3>
+                <p class="wizard__step-subtitle">{t.size.subtitle}</p>
+                <div class="wizard__options" data-field="size">{sizes.map(s => <button class="wizard__option" data-value={s}>{s}</button>)}</div>
+                <div class="wizard__error" data-error="size"></div>
+              </>
+            )}
+            {step === 'people' && (
+              <>
+                <h3 class="wizard__step-title">{t.people.title}</h3>
+                <p class="wizard__step-subtitle">{t.people.subtitle}</p>
+                <div class:list={['wizard__options', { 'wizard__options--grid': w.id === 'family' }]} data-field="people">
+                  {(w.people || []).map(p => <button class="wizard__option" data-value={String(p)}>{p} {p === 1 ? 'Person' : t.people.persons}</button>)}
+                </div>
+                <div class="wizard__error" data-error="people"></div>
+              </>
+            )}
+            {step === 'format' && (
+              <>
+                <h3 class="wizard__step-title">{t.format.title}</h3>
+                <p class="wizard__step-subtitle">{t.format.subtitle}</p>
+                <div class="wizard__options" data-field="format">
+                  <button class="wizard__option" data-value="horizontal">{t.format.horizontal}</button>
+                  <button class="wizard__option" data-value="vertical">{t.format.vertical}</button>
+                </div>
+                <div class="wizard__error" data-error="format"></div>
+              </>
+            )}
+            {step === 'picture' && (
+              <>
+                <h3 class="wizard__step-title">{t.picture.title}</h3>
+                <p class="wizard__step-subtitle">{t.picture.subtitle}</p>
+                <ul class="wizard__req-list"><li>{t.picture.req1}</li><li>{t.picture.req2}</li></ul>
+                <div class="wizard__dropzone" data-field="image">
+                  <input type="file" accept="image/png,image/jpeg,image/webp" class="wizard__file-input" />
+                  <div class="wizard__dropzone-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>{t.picture.dropzone}</span>
+                    <small>{t.picture.maxSize}</small>
+                  </div>
+                  <div class="wizard__preview" style="display:none;">
+                    <img class="wizard__preview-img" alt="Preview" />
+                    <button type="button" class="wizard__preview-change">{t.picture.changeImage}</button>
+                  </div>
+                </div>
+                <div class="wizard__error" data-error="image"></div>
+              </>
+            )}
+            {step === 'idea' && (
+              <>
+                <h3 class="wizard__step-title">{t.idea.title}</h3>
+                <p class="wizard__step-subtitle">{t.idea.subtitle}</p>
+                <textarea class="wizard__textarea" data-field="idea" rows="5" maxlength="2000" placeholder={t.idea.placeholder}></textarea>
+                <label class="wizard__checkbox" style="margin-top:var(--space-md);"><input type="checkbox" data-field="noIdea" /><span>{t.idea.noIdea}</span></label>
+              </>
+            )}
+            {step === 'contact' && (
+              <>
+                <h3 class="wizard__step-title">{t.contact.title}</h3>
+                <p class="wizard__step-subtitle">{t.contact.subtitle}</p>
+                <div class="wizard__form-grid">
+                  <div class="wizard__field"><label>{t.contact.firstName} *</label><input type="text" data-field="firstName" maxlength="100" required /></div>
+                  <div class="wizard__field"><label>{t.contact.lastName} *</label><input type="text" data-field="lastName" maxlength="100" required /></div>
+                  <div class="wizard__field wizard__field--full"><label>{t.contact.email} *</label><input type="email" data-field="email" maxlength="254" required /></div>
+                  <div class="wizard__field"><label>{t.contact.phone}</label><input type="tel" data-field="phone" maxlength="50" /></div>
+                  <div class="wizard__field"><label>{t.contact.country} *</label><input type="text" data-field="country" maxlength="100" required /></div>
+                  <div class="wizard__field wizard__field--full"><label>{t.contact.address} *</label><input type="text" data-field="address" maxlength="200" required /></div>
+                  <div class="wizard__field"><label>{t.contact.zip} *</label><input type="text" data-field="zip" maxlength="20" required /></div>
+                  <div class="wizard__field"><label>{t.contact.city} *</label><input type="text" data-field="city" maxlength="100" required /></div>
+                  <div class="wizard__field wizard__field--full"><label>{t.contact.message}</label><textarea data-field="message" rows="3" maxlength="2000"></textarea></div>
+                </div>
+                <div class="wizard__error" data-error="contact"></div>
+              </>
+            )}
+            {step === 'shipping' && (
+              <>
+                <h3 class="wizard__step-title">{t.shipping.title}</h3>
+                <p class="wizard__step-subtitle">{t.shipping.subtitle}</p>
+                <div class="wizard__options" data-field="shipping">
+                  <button class="wizard__option" data-value="switzerland">{t.shipping.switzerland}</button>
+                  <button class="wizard__option" data-value="europe">{t.shipping.europe}</button>
+                  <button class="wizard__option" data-value="worldwide">{t.shipping.worldwide}</button>
+                </div>
+                <div class="wizard__error" data-error="shipping"></div>
+              </>
+            )}
+            {step === 'reminder' && (
+              <>
+                <h3 class="wizard__step-title">{t.reminder.title}</h3>
+                <p class="wizard__step-subtitle">{t.reminder.subtitle}</p>
+                <label class="wizard__checkbox"><input type="checkbox" data-field="reminderAccepted" /><span>{t.reminder.accept}</span></label>
+                <div class="wizard__error" data-error="reminder"></div>
+              </>
+            )}
+            {step === 'summary' && (
+              <>
+                <h3 class="wizard__step-title">{t.summary.title}</h3>
+                <p class="wizard__step-subtitle">{t.summary.subtitle}</p>
+                <div class="wizard__summary"></div>
+                <div class="wizard__error" data-error="summary"></div>
+                <div class="cf-turnstile" data-sitekey={TURNSTILE_SITEKEY} data-size="invisible"></div>
+              </>
+            )}
+          </div>
+        ))}
+
+        <div class="wizard__nav">
+          <button class="wizard__nav-btn wizard__nav-back" type="button">{t.nav.back}</button>
+          <button class="wizard__nav-btn wizard__nav-next btn" type="button">{t.nav.next}</button>
+        </div>
+      </div>
+    ))}
+
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="about-testimonials section fade-in">
+  <div class="container">
+    <h2 class="about-testimonials__title">{testimonials.title}</h2>
+    <div class="about-testimonials__grid">
+      {testimonials.items.map((item, i) => (
+        <div class={`testimonial-card fade-in fade-in-delay-${i + 1}`}>
+          <p class="testimonial-card__text">{item.text}</p>
+          <div class="testimonial-card__author">
+            <div class="testimonial-card__avatar">{item.name.charAt(0)}</div>
+            <div>
+              <p class="testimonial-card__name">{item.name}</p>
+              <p class="testimonial-card__role">{item.role}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="wizard-config" set:html={JSON.stringify(wizardConfig)} />
+
+<script>
+  import { getQuote, isAvailable, type PackageId } from '@/lib/pricing';
+  import { escapeHtml, EMAIL_RE } from '@/lib/sanitize';
+  import { formatCHF } from '@/lib/format';
+
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // must match functions/api/order.ts
+  const ALLOWED_TYPES = /^image\/(png|jpeg|webp)$/;
+
+  const cfgEl = document.getElementById('wizard-config');
+  const cfg = cfgEl ? JSON.parse(cfgEl.textContent || '{}') : null;
+
+  if (cfg) {
+    const { summary: summaryLabels, validation: validationLabels, nav: navLabels } = cfg;
+
+    /** Read this wizard's own Turnstile token (never another wizard's). */
+    function getToken(wizardEl: HTMLElement): string {
+      const input = wizardEl.querySelector<HTMLInputElement>('[name="cf-turnstile-response"]');
+      return input?.value || '';
+    }
+
+    /** Reset this wizard's widget and wait (max ~8s) for a fresh token. */
+    async function refreshToken(wizardEl: HTMLElement): Promise<string> {
+      const widget = wizardEl.querySelector<HTMLElement>('.cf-turnstile');
+      const ts = (window as any).turnstile;
+      if (widget && ts?.reset) {
+        try { ts.reset(widget); } catch { /* widget may not be rendered yet */ }
+      }
+      for (let i = 0; i < 40; i++) {
+        await new Promise(r => setTimeout(r, 200));
+        const token = getToken(wizardEl);
+        if (token) return token;
+      }
+      return getToken(wizardEl);
+    }
+
+    document.querySelectorAll<HTMLElement>('.wizard').forEach(wizardEl => {
+      const pkg = wizardEl.dataset.package as PackageId;
+      const steps = wizardEl.querySelectorAll<HTMLElement>('.wizard__step');
+      const totalSteps = steps.length;
+      const progressFill = wizardEl.querySelector<HTMLElement>('.wizard__progress-fill')!;
+      const stepsLabel = wizardEl.querySelector<HTMLElement>('.wizard__steps-label')!;
+      const btnNext = wizardEl.querySelector<HTMLButtonElement>('.wizard__nav-next')!;
+      const btnBack = wizardEl.querySelector<HTMLButtonElement>('.wizard__nav-back')!;
+      let currentStep = 1;
+      const formData: Record<string, any> = {};
+      let uploadedFile: File | null = null;
+
+      function showStep(n: number) {
+        currentStep = n;
+        steps.forEach(s => (s.style.display = parseInt(s.dataset.step || '0') === n ? 'block' : 'none'));
+        progressFill.style.width = (n / totalSteps) * 100 + '%';
+        stepsLabel.textContent = n + ' / ' + totalSteps;
+        btnBack.style.visibility = n === 1 ? 'hidden' : 'visible';
+        if (n === totalSteps) {
+          btnNext.textContent = summaryLabels.submit;
+          buildSummary();
+        } else {
+          btnNext.textContent = navLabels.next;
+        }
+        wizardEl.querySelectorAll('.wizard__error').forEach(e => (e.textContent = ''));
+      }
+
+      /** Disable person counts that have no price for the selected size (Creative A0 3–4P etc.). */
+      function updateAvailability() {
+        const size = formData.size;
+        wizardEl.querySelectorAll<HTMLButtonElement>('[data-field="people"] .wizard__option').forEach(btn => {
+          const n = parseInt(btn.dataset.value || '0', 10);
+          const unavailable = !!size && !isAvailable(pkg, size, n);
+          btn.disabled = unavailable;
+          btn.classList.toggle('is-unavailable', unavailable);
+          if (unavailable && formData.people === btn.dataset.value) {
+            delete formData.people;
+            btn.classList.remove('is-selected');
+          }
+        });
+      }
+
+      wizardEl.querySelectorAll<HTMLElement>('.wizard__options').forEach(group => {
+        const field = group.dataset.field!;
+        group.querySelectorAll<HTMLButtonElement>('.wizard__option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            group.querySelectorAll('.wizard__option').forEach(b => b.classList.remove('is-selected'));
+            btn.classList.add('is-selected');
+            formData[field] = btn.dataset.value;
+            if (field === 'size') updateAvailability();
+          });
+        });
+      });
+
+      wizardEl.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[data-field], textarea[data-field]').forEach(input => {
+        const handler = () => {
+          formData[input.dataset.field!] = (input as HTMLInputElement).type === 'checkbox' ? (input as HTMLInputElement).checked : input.value;
+        };
+        input.addEventListener('input', handler);
+        input.addEventListener('change', handler);
+      });
+
+      const dropzone = wizardEl.querySelector<HTMLElement>('.wizard__dropzone');
+      if (dropzone) {
+        const fileInput = dropzone.querySelector<HTMLInputElement>('.wizard__file-input')!;
+        const content = dropzone.querySelector<HTMLElement>('.wizard__dropzone-content')!;
+        const preview = dropzone.querySelector<HTMLElement>('.wizard__preview')!;
+        const previewImg = dropzone.querySelector<HTMLImageElement>('.wizard__preview-img')!;
+        const changeBtn = dropzone.querySelector<HTMLElement>('.wizard__preview-change');
+        dropzone.addEventListener('click', e => {
+          const target = e.target as HTMLElement;
+          if (target === changeBtn || target.closest('.wizard__preview-change')) fileInput.click();
+          else if (!uploadedFile) fileInput.click();
+        });
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('is-dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
+        dropzone.addEventListener('drop', e => {
+          e.preventDefault();
+          dropzone.classList.remove('is-dragover');
+          if (e.dataTransfer?.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', () => { if (fileInput.files?.length) handleFile(fileInput.files[0]); });
+        if (changeBtn) changeBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+
+        function handleFile(file: File) {
+          // Same rules as the server (functions/api/order.ts) — and a visible
+          // error instead of the previous silent return.
+          if (!ALLOWED_TYPES.test(file.type) || file.size > MAX_FILE_SIZE) {
+            showError('image', validationLabels.fileInvalid);
+            return;
+          }
+          showError('image', '');
+          uploadedFile = file;
+          formData.image = file.name;
+          const reader = new FileReader();
+          reader.onload = e => {
+            previewImg.src = e.target?.result as string;
+            content.style.display = 'none';
+            preview.style.display = 'flex';
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function validateStep(): boolean {
+        const step = wizardEl.querySelector<HTMLElement>(`.wizard__step[data-step="${currentStep}"]`)!;
+        const optionGroup = step.querySelector<HTMLElement>('.wizard__options');
+        if (optionGroup) {
+          const field = optionGroup.dataset.field!;
+          if (!formData[field]) { showError(field, validationLabels.selectOption); return false; }
+        }
+        const requiredInputs = step.querySelectorAll<HTMLInputElement>('input[required]');
+        for (const input of requiredInputs) {
+          if (!input.value.trim()) { showError('contact', validationLabels.required); input.focus(); return false; }
+          if (input.type === 'email' && !EMAIL_RE.test(input.value)) { showError('contact', validationLabels.email); input.focus(); return false; }
+        }
+        const reminderCheck = step.querySelector<HTMLInputElement>('input[data-field="reminderAccepted"]');
+        if (reminderCheck && !reminderCheck.checked) { showError('reminder', validationLabels.reminder); return false; }
+        return true;
+      }
+
+      function showError(field: string, msg: string) {
+        const e = wizardEl.querySelector(`[data-error="${field}"]`);
+        if (e) e.textContent = msg;
+      }
+
+      function calcQuote() {
+        if (!formData.size || !formData.shipping) return null;
+        return getQuote(pkg, formData.size, formData.people ?? 1, formData.shipping);
+      }
+
+      function buildSummary() {
+        const s = wizardEl.querySelector<HTMLElement>('.wizard__summary')!;
+        const quote = calcQuote();
+        let h = '<div class="summary">';
+
+        // Order details — all user-entered values escaped at the sink.
+        h += '<div class="summary__card">';
+        h += '<div class="summary__card-header">' + escapeHtml(summaryLabels.orderDetails || summaryLabels.title) + '</div>';
+        h += '<div class="summary__card-body">';
+        h += row(summaryLabels.package, cfg.pkgLabels[pkg]);
+        h += row(summaryLabels.size, formData.size || '—');
+        if (formData.format) h += row(summaryLabels.format, cfg.formatLabels[formData.format] || formData.format);
+        if (formData.people) h += row(summaryLabels.people, formData.people);
+        if (formData.shipping) h += row(summaryLabels.shipping, cfg.shippingLabels[formData.shipping] || formData.shipping);
+        if (formData.image) h += '<div class="summary__row"><span class="summary__label">' + escapeHtml(summaryLabels.image) + '</span><span class="summary__value"><span class="summary__check">✓</span> ' + escapeHtml(formData.image) + '</span></div>';
+        h += '</div></div>';
+
+        if (formData.idea) {
+          h += '<div class="summary__card">';
+          h += '<div class="summary__card-header">' + escapeHtml(summaryLabels.idea) + '</div>';
+          h += '<div class="summary__card-body"><p class="summary__idea-text">' + escapeHtml(formData.idea) + '</p></div>';
+          h += '</div>';
+        }
+
+        h += '<div class="summary__card">';
+        h += '<div class="summary__card-header">' + escapeHtml(summaryLabels.name) + '</div>';
+        h += '<div class="summary__card-body">';
+        h += row(summaryLabels.name, (formData.firstName || '') + ' ' + (formData.lastName || ''));
+        h += row(summaryLabels.email, formData.email || '');
+        if (formData.phone) h += row(summaryLabels.phone, formData.phone);
+        h += row(summaryLabels.address, (formData.address || '') + ', ' + (formData.zip || '') + ' ' + (formData.city || ''));
+        if (formData.country) h += row(summaryLabels.country, formData.country);
+        h += '</div></div>';
+
+        if (quote) {
+          h += '<div class="summary__card summary__card--pricing">';
+          h += '<div class="summary__card-header">' + escapeHtml(summaryLabels.pricing) + '</div>';
+          h += '<div class="summary__card-body">';
+          h += priceRow(summaryLabels.drawing, quote.drawing);
+          if (quote.creative > 0) h += priceRow(summaryLabels.creativePackage, quote.creative);
+          h += priceRow(summaryLabels.packaging, quote.packaging);
+          h += priceRow(summaryLabels.shippingCost, quote.shipping);
+          h += '</div>';
+          h += '<div class="summary__card-footer">';
+          h += '<span class="summary__total-label">' + escapeHtml(summaryLabels.total) + '</span>';
+          h += '<span class="summary__total-value">' + formatCHF(quote.total) + '</span>';
+          h += '</div></div>';
+        } else {
+          h += '<div class="summary__card"><div class="summary__card-body"><p class="summary__idea-text">' + escapeHtml(validationLabels.unavailable) + '</p></div></div>';
+        }
+
+        h += '</div>';
+        s.innerHTML = h;
+      }
+
+      function row(l: string, v: string) {
+        return '<div class="summary__row"><span class="summary__label">' + escapeHtml(l) + '</span><span class="summary__value">' + escapeHtml(v) + '</span></div>';
+      }
+      function priceRow(l: string, a: number) {
+        return '<div class="summary__row"><span class="summary__label">' + escapeHtml(l) + '</span><span class="summary__value">' + formatCHF(a) + '</span></div>';
+      }
+
+      async function handleSubmit() {
+        // Never submit an unpriceable combination (defense in depth — the UI
+        // already disables them; the server re-checks too).
+        if (!calcQuote()) {
+          showError('summary', validationLabels.unavailable);
+          return;
+        }
+        btnNext.textContent = summaryLabels.submitting;
+        btnNext.disabled = true;
+        try {
+          const buildBody = (token: string) => {
+            const body = new FormData();
+            body.append('package', pkg);
+            const fieldsToCopy = ['size', 'format', 'people', 'shipping', 'idea', 'message', 'firstName', 'lastName', 'email', 'phone', 'address', 'zip', 'city', 'country'];
+            fieldsToCopy.forEach(f => { if (formData[f]) body.append(f, formData[f]); });
+            body.append('locale', cfg.locale);
+            if (uploadedFile) body.append('image', uploadedFile);
+            body.append('cf-turnstile-response', token);
+            return body;
+          };
+
+          let token = getToken(wizardEl) || (await refreshToken(wizardEl));
+          let res = await fetch('/api/order', { method: 'POST', body: buildBody(token) });
+
+          // Token expired or already used (e.g. the customer spent >5 min on
+          // the form): reset this wizard's widget and retry exactly once.
+          if (res.status === 403) {
+            token = await refreshToken(wizardEl);
+            res = await fetch('/api/order', { method: 'POST', body: buildBody(token) });
+          }
+
+          const result = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string };
+          if (!res.ok || !result.success) throw new Error(result.error || 'Request failed');
+
+          wizardEl.querySelector('.wizard__summary')!.innerHTML =
+            `<div class="wizard__success"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><h3>${escapeHtml(summaryLabels.successTitle)}</h3><p>${escapeHtml(summaryLabels.successMsg)}</p></div>`;
+          (wizardEl.querySelector('.wizard__nav') as HTMLElement).style.display = 'none';
+        } catch (err) {
+          console.error('Submit error:', err);
+          showError('summary', summaryLabels.errorMsg);
+          btnNext.textContent = summaryLabels.submit;
+          btnNext.disabled = false;
+        }
+      }
+
+      btnNext.addEventListener('click', () => {
+        if (currentStep === totalSteps) { handleSubmit(); return; }
+        if (validateStep()) showStep(currentStep + 1);
+      });
+      btnBack.addEventListener('click', () => { if (currentStep > 1) showStep(currentStep - 1); });
+      showStep(1);
+      updateAvailability();
+    });
+
+    // Tabs
+    document.querySelectorAll<HTMLButtonElement>('.cd-tabs__btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.cd-tabs__btn').forEach(b => { b.classList.remove('is-active'); b.setAttribute('aria-selected', 'false'); });
+        btn.classList.add('is-active');
+        btn.setAttribute('aria-selected', 'true');
+        document.querySelectorAll<HTMLElement>('.wizard').forEach(w => { w.style.display = w.id === 'wizard-' + tab ? 'block' : 'none'; });
+      });
+    });
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById('wizard-' + hash)) {
+      document.querySelector<HTMLButtonElement>(`[data-tab="${hash}"]`)?.click();
+    }
+  }
+</script>
+
+<style>
+  /* Page */
+  .cd-page { padding-top: calc(var(--header-height) + var(--space-3xl)); padding-bottom: var(--space-4xl); }
+  .cd-page__header { text-align: left; margin-bottom: var(--space-3xl); max-width: 720px; margin-inline: auto; }
+  .cd-page__title { font-family: var(--font-heading); font-size: var(--text-3xl); font-weight: 400; letter-spacing: 0.01em; margin-bottom: var(--space-xl); }
+  .cd-page__intro { color: var(--color-text-secondary); font-size: var(--text-sm); line-height: 1.8; margin-bottom: var(--space-2xl); }
+  .cd-page__promise { margin-bottom: var(--space-lg); }
+  .cd-page__promise-title { font-family: var(--font-body); font-size: var(--text-base); font-weight: 500; margin-bottom: var(--space-lg); }
+  .cd-page__promise-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: var(--space-md); }
+  .cd-page__promise-list li { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: 1.6; display: flex; align-items: flex-start; gap: var(--space-sm); }
+  .cd-page__check { color: var(--color-text); flex-shrink: 0; }
+
+  /* Tabs */
+  .cd-tabs { display: flex; justify-content: center; gap: var(--space-xs); margin-bottom: var(--space-3xl); border-bottom: 1px solid var(--color-border); padding-bottom: 0; }
+  .cd-tabs__btn { padding: var(--space-md) var(--space-xl); background: none; border: none; cursor: pointer; font-family: var(--font-body); font-size: var(--text-sm); font-weight: 400; letter-spacing: 0.04em; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all var(--transition-fast); }
+  .cd-tabs__btn:hover { color: var(--color-text); }
+  .cd-tabs__btn.is-active { color: var(--color-black); border-bottom-color: var(--color-black); }
+
+  /* Wizard */
+  .wizard { max-width: 640px; margin-inline: auto; }
+  .wizard__intro { text-align: center; margin-bottom: var(--space-2xl); }
+  .wizard__intro p { color: var(--color-text-secondary); margin-inline: auto; font-size: var(--text-sm); line-height: 1.7; }
+  .wizard__intro-note { font-weight: 500; color: var(--color-text) !important; margin-top: var(--space-sm) !important; font-size: var(--text-xs) !important; letter-spacing: 0.04em; }
+
+  /* Progress */
+  .wizard__progress { margin-bottom: var(--space-2xl); }
+  .wizard__progress-bar { height: 2px; background: var(--color-gray-200); border-radius: 2px; overflow: hidden; }
+  .wizard__progress-fill { height: 100%; background: var(--color-black); transition: width var(--transition-base); width: 0; }
+  .wizard__steps-label { text-align: center; font-size: var(--text-xs); color: var(--color-text-muted); margin-top: var(--space-sm); letter-spacing: 0.08em; }
+
+  /* Steps */
+  .wizard__step { display: none; animation: fadeIn 0.3s ease; }
+  .wizard__step[data-step="1"] { display: block; }
+  .wizard__step-title { font-family: var(--font-heading); font-size: var(--text-2xl); font-weight: 400; margin-bottom: var(--space-sm); }
+  .wizard__step-subtitle { font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-xl); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Options */
+  .wizard__options { display: flex; gap: var(--space-md); flex-wrap: wrap; }
+  .wizard__options--grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .wizard__option { flex: 1; min-width: 120px; padding: var(--space-lg) var(--space-xl); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-white); cursor: pointer; font-family: var(--font-body); font-size: var(--text-base); font-weight: 400; text-align: center; transition: all var(--transition-fast); }
+  .wizard__option:hover:not(:disabled) { border-color: var(--color-gray-400); }
+  .wizard__option.is-selected { border-color: var(--color-black); background: var(--color-black); color: var(--color-white); }
+  .wizard__option:disabled, .wizard__option.is-unavailable { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+
+  /* Requirements */
+  .wizard__req-list { margin-bottom: var(--space-lg); padding-left: var(--space-lg); }
+  .wizard__req-list li { font-size: var(--text-sm); color: var(--color-text-secondary); margin-bottom: var(--space-xs); list-style: disc; }
+
+  /* Dropzone */
+  .wizard__dropzone { border: 2px dashed var(--color-border); border-radius: var(--radius-md); padding: var(--space-2xl); text-align: center; cursor: pointer; transition: all var(--transition-fast); position: relative; }
+  .wizard__dropzone:hover, .wizard__dropzone.is-dragover { border-color: var(--color-black); background: var(--color-gray-50); }
+  .wizard__dropzone-content { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); color: var(--color-text-muted); }
+  .wizard__dropzone-content span { font-size: var(--text-sm); }
+  .wizard__dropzone-content small { font-size: var(--text-xs); }
+  .wizard__file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: -1; }
+  .wizard__preview { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); }
+  .wizard__preview-img { max-height: 200px; max-width: 100%; border-radius: var(--radius-sm); object-fit: contain; }
+  .wizard__preview-change { background: none; border: 1px solid var(--color-border); padding: var(--space-xs) var(--space-md); font-size: var(--text-xs); border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition-fast); }
+  .wizard__preview-change:hover { border-color: var(--color-black); }
+
+  /* Form Grid */
+  .wizard__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+  .wizard__field--full { grid-column: 1 / -1; }
+  .wizard__field label { display: block; font-size: var(--text-xs); font-weight: 500; letter-spacing: 0.04em; color: var(--color-text-secondary); margin-bottom: var(--space-xs); text-transform: uppercase; }
+  .wizard__field input, .wizard__field textarea { width: 100%; padding: var(--space-md); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--text-base); transition: border-color var(--transition-fast); background: var(--color-white); }
+  .wizard__field input:focus, .wizard__field textarea:focus { outline: none; border-color: var(--color-black); }
+  .wizard__textarea { width: 100%; padding: var(--space-md); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: var(--text-base); font-family: var(--font-body); resize: vertical; transition: border-color var(--transition-fast); }
+  .wizard__textarea:focus { outline: none; border-color: var(--color-black); }
+
+  /* Checkbox */
+  .wizard__checkbox { display: flex; align-items: flex-start; gap: var(--space-md); cursor: pointer; padding: var(--space-lg); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+  .wizard__checkbox input { margin-top: 3px; accent-color: var(--color-black); }
+  .wizard__checkbox span { font-size: var(--text-sm); color: var(--color-text-secondary); line-height: 1.5; }
+
+  /* Error */
+  .wizard__error { color: #b91c1c; font-size: var(--text-xs); margin-top: var(--space-sm); min-height: 1.2em; }
+
+  /* Navigation */
+  .wizard__nav { display: flex; justify-content: space-between; margin-top: var(--space-2xl); padding-top: var(--space-xl); border-top: 1px solid var(--color-border); }
+  .wizard__nav-back { background: none; border: none; cursor: pointer; font-size: var(--text-sm); color: var(--color-text-secondary); padding: var(--space-md) var(--space-xl); transition: color var(--transition-fast); }
+  .wizard__nav-back:hover { color: var(--color-text); }
+
+  /* ---- Testimonials ---- */
+  .about-testimonials__title { text-align: center; font-weight: 300; letter-spacing: 0.02em; margin-bottom: var(--space-3xl); }
+  .about-testimonials__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2xl); }
+  .testimonial-card { padding: var(--space-2xl); border: 1px solid var(--color-border); border-radius: var(--radius-md); display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-xl); transition: border-color var(--transition-base), box-shadow var(--transition-base); }
+  .testimonial-card:hover { border-color: var(--color-gray-400); box-shadow: var(--shadow-md); }
+  .testimonial-card__text { font-size: var(--text-sm); color: var(--color-gray-600); line-height: 1.8; font-style: italic; max-width: none; }
+  .testimonial-card__author { display: flex; align-items: center; gap: var(--space-md); }
+  .testimonial-card__avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--color-black); color: var(--color-white); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: var(--text-lg); font-weight: 500; flex-shrink: 0; }
+  .testimonial-card__name { font-weight: 600; font-size: var(--text-sm); max-width: none; }
+  .testimonial-card__role { font-size: var(--text-xs); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.06em; max-width: none; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .cd-tabs { overflow-x: auto; justify-content: flex-start; }
+    .cd-tabs__btn { padding: var(--space-sm) var(--space-md); font-size: var(--text-xs); white-space: nowrap; }
+    .wizard__options--grid { grid-template-columns: repeat(2, 1fr); }
+    .wizard__form-grid { grid-template-columns: 1fr; }
+    .wizard__field--full { grid-column: 1; }
+    .wizard__option { min-width: 80px; padding: var(--space-md); }
+    .about-testimonials__grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- Global styles for dynamically generated summary HTML -->
+<style is:global>
+  .summary { display: flex; flex-direction: column; gap: 1.5rem; }
+  .summary__card { border: 1px solid #e5e5e5; border-radius: 0.5rem; overflow: hidden; }
+  .summary__card-header { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #737373; padding: 0.75rem 1.25rem; background: #fafafa; border-bottom: 1px solid #e5e5e5; }
+  .summary__card-body { padding: 0.375rem 1.25rem; }
+  .summary__row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.625rem 0; border-bottom: 1px solid #f5f5f5; gap: 2rem; }
+  .summary__row:last-child { border-bottom: none; }
+  .summary__label { font-size: 0.875rem; color: #737373; white-space: nowrap; }
+  .summary__value { font-size: 0.875rem; font-weight: 500; color: #1a1a1a; text-align: right; }
+  .summary__check { color: #16a34a; }
+  .summary__idea-text { font-size: 0.875rem; color: #525252; line-height: 1.6; padding: 0.5rem 0; }
+  .summary__card--pricing .summary__card-body { padding-bottom: 0; }
+  .summary__card-footer { display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 1.25rem; background: #1a1a1a; color: #ffffff; }
+  .summary__total-label { font-size: 0.875rem; font-weight: 600; letter-spacing: 0.04em; }
+  .summary__total-value { font-size: 1.125rem; font-weight: 700; letter-spacing: 0.02em; }
+  .wizard__success { text-align: center; padding: 3rem 1.5rem; }
+  .wizard__success svg { color: #16a34a; margin-bottom: 1.5rem; }
+  .wizard__success h3 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+  .wizard__success p { color: #525252; font-size: 0.875rem; }
+  @media (max-width: 768px) {
+    .summary__row { gap: 1rem; }
+  }
+</style>

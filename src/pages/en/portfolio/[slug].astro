@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { portfolioWorks, type PortfolioWork } from '@/content/portfolio/works';
+import { portfolioWorks, type PortfolioWork } from '@/lib/portfolio';
 import { t } from '@/i18n/utils';
 
 const locale = 'en';
@@ -71,7 +71,7 @@ if (!work) {
 
           <p class="detail-page__description">{work.description.en}</p>
 
-          <a href={`mailto:info@fabulous-art.ch?subject=Inquiry: ${work.title}`} class="btn">
+          <a href={`mailto:info@fabulous-art.ch?subject=${encodeURIComponent(`Inquiry: ${work.title}`)}`} class="btn">
             Send Inquiry
           </a>
         </div>

@@ -60,9 +60,9 @@ export const customDrawingTranslations = {
       title: 'Bild hochladen',
       subtitle: 'Bitte stelle sicher, dass folgende Punkte erfüllt sind:',
       req1: 'Hochauflösendes Bild',
-      req2: 'Format: PNG oder JPG',
+      req2: 'Format: PNG, JPG oder WebP',
       dropzone: 'Bild hierher ziehen oder klicken zum Auswählen',
-      maxSize: 'Maximale Dateigrösse: 20 MB',
+      maxSize: 'Maximale Dateigrösse: 10 MB',
       changeImage: 'Bild ändern',
     },
     shipping: {
@@ -98,6 +98,8 @@ export const customDrawingTranslations = {
     },
     summary: {
       title: 'Zusammenfassung',
+      orderDetails: 'Bestelldetails',
+      country: 'Land',
       subtitle: 'Bitte überprüfe deine Angaben.',
       package: 'Paket',
       size: 'Grösse',
@@ -134,6 +136,8 @@ export const customDrawingTranslations = {
       image: 'Bitte lade ein Bild hoch.',
       reminder: 'Bitte akzeptiere die Bedingungen.',
       selectOption: 'Bitte wähle eine Option.',
+      fileInvalid: 'Bitte lade ein Bild als PNG, JPG oder WebP mit maximal 10 MB hoch.',
+      unavailable: 'Diese Kombination ist leider nicht verfügbar. Bitte wähle eine andere Grösse oder Personenanzahl.',
     },
   },
   en: {
@@ -197,9 +201,9 @@ export const customDrawingTranslations = {
       title: 'Upload Picture',
       subtitle: 'Please make sure the following requirements are met:',
       req1: 'High-quality picture',
-      req2: 'Format: PNG or JPG',
+      req2: 'Format: PNG, JPG or WebP',
       dropzone: 'Drag image here or click to select',
-      maxSize: 'Maximum file size: 20 MB',
+      maxSize: 'Maximum file size: 10 MB',
       changeImage: 'Change image',
     },
     shipping: {
@@ -235,6 +239,8 @@ export const customDrawingTranslations = {
     },
     summary: {
       title: 'Summary',
+      orderDetails: 'Order Details',
+      country: 'Country',
       subtitle: 'Please review your details.',
       package: 'Package',
       size: 'Size',
@@ -271,6 +277,8 @@ export const customDrawingTranslations = {
       image: 'Please upload an image.',
       reminder: 'Please accept the conditions.',
       selectOption: 'Please select an option.',
+      fileInvalid: 'Please upload a PNG, JPG or WebP image up to 10 MB.',
+      unavailable: 'This combination is unfortunately not available. Please choose a different size or number of people.',
     },
   },
 };

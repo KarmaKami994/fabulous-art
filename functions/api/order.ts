@@ -1,25 +1,39 @@
+/// <reference types="@cloudflare/workers-types" />
 /**
  * Cloudflare Pages Function — POST /api/order
  *
- * 1. Rate-limits requests per IP (max 5 orders per hour)
- * 2. Validates Cloudflare Turnstile token (bot protection)
- * 3. Empfängt FormData (Auftragsdaten + optionale Bilder)
- * 4. Speichert Bilder in Cloudflare R2
- * 5. Sendet E-Mails via Mailjet (an Fabienne + Kunde)
+ * Request flow (order matters — durability first, notification second):
+ *   1. Rate-limit per IP (best-effort, per-isolate; the authoritative limit
+ *      is a Cloudflare WAF rate-limiting rule — see README "Operations")
+ *   2. Verify Cloudflare Turnstile token — FAIL CLOSED if unconfigured
+ *   3. Validate + length-cap all fields (raw values kept; HTML-escaping
+ *      happens only inside the email templates, at the sink)
+ *   4. Recompute the price server-side from src/data/pricing.json —
+ *      client-submitted prices are ignored entirely
+ *   5. Upload reference image to R2 under orders/{orderId}/
+ *   6. Persist orders/{orderId}/order.json to R2  ← system of record
+ *   7. Send both emails via Mailjet (one retry). If email still fails, the
+ *      order is already durable, so the customer still gets a success
+ *      response; the failure is logged for follow-up.
  *
- * Environment Variables (in Cloudflare Dashboard setzen):
- *   MAILJET_API_KEY      — Mailjet Public Key
- *   MAILJET_SECRET_KEY   — Mailjet Secret Key
- *   MAILJET_FROM_EMAIL   — Absender-Email
- *   MAILJET_FROM_NAME    — Absender-Name
- *   FABIENNE_EMAIL       — Empfänger
- *   TURNSTILE_SECRET     — Cloudflare Turnstile Secret Key
+ * Environment variables (Cloudflare Pages dashboard):
+ *   MAILJET_API_KEY, MAILJET_SECRET_KEY, MAILJET_FROM_EMAIL,
+ *   MAILJET_FROM_NAME, FABIENNE_EMAIL, TURNSTILE_SECRET (required!)
  *
- * R2 Binding (in wrangler.toml / Cloudflare Dashboard):
- *   ORDER_IMAGES         — R2 Bucket Binding Name
+ * R2 binding (wrangler.toml / dashboard): ORDER_IMAGES
  */
+import { getQuote, PACKAGES, SIZES, SHIPPING_ZONES, type Quote } from '../../src/lib/pricing';
+import { cleanText, FIELD_LIMITS, EMAIL_RE } from '../../src/lib/sanitize';
+import {
+  buildOwnerSubject,
+  buildOwnerHtml,
+  buildOwnerText,
+  buildCustomerSubject,
+  buildCustomerHtml,
+  buildCustomerText,
+  type OrderEmailInput,
+} from './_emails';
 
-// Type definition for Cloudflare environment
 interface Env {
   ORDER_IMAGES: R2Bucket;
   MAILJET_API_KEY: string;
@@ -30,17 +44,23 @@ interface Env {
   TURNSTILE_SECRET: string;
 }
 
-// Allowed image types
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB — keep in sync with CommissionWizards.astro
+const MAX_REQUEST_SIZE = 12 * 1024 * 1024; // image + form overhead
 
-// --- Rate Limiting (in-memory, per-isolate) ---
-const RATE_LIMIT_MAX = 5;        // Max orders per window
-const RATE_LIMIT_WINDOW = 3600;  // Window in seconds (1 hour)
+// --- Rate limiting (best-effort, per-isolate — see README for the WAF rule) ---
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW = 3600; // seconds
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(ip: string): boolean {
   const now = Math.floor(Date.now() / 1000);
+  // Evict expired entries so the map cannot grow unboundedly.
+  if (rateLimitMap.size > 1000) {
+    for (const [key, entry] of rateLimitMap) {
+      if (now > entry.resetAt) rateLimitMap.delete(key);
+    }
+  }
   const entry = rateLimitMap.get(ip);
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
@@ -51,9 +71,13 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-// --- Turnstile Verification ---
-async function verifyTurnstile(token: string, secret: string, ip: string): Promise<boolean> {
-  if (!secret) return true; // Skip if no secret configured (dev mode)
+// --- Turnstile: FAIL CLOSED ---
+// A missing secret is a deployment error, not a license to skip bot checks.
+async function verifyTurnstile(token: string, secret: string | undefined, ip: string): Promise<boolean> {
+  if (!secret) {
+    console.error('TURNSTILE_SECRET is not configured — refusing request (fail closed).');
+    return false;
+  }
   if (!token) return false;
   try {
     const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -61,564 +85,220 @@ async function verifyTurnstile(token: string, secret: string, ip: string): Promi
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ secret, response: token, remoteip: ip }),
     });
-    const data = await res.json() as { success: boolean };
+    const data = (await res.json()) as { success: boolean };
     return data.success;
-  } catch {
+  } catch (err) {
+    console.error('Turnstile verification request failed:', err);
     return false;
   }
 }
 
-// --- Input Sanitization ---
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+function json(status: number, body: Record<string, unknown>, corsHeaders: Record<string, string>): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  });
 }
 
-export const onRequestPost: PagesFunction<Env> = async (context) => {
-  const { request, env } = context;
-
-  // CORS headers (support both www and non-www)
+function corsHeadersFor(request: Request): Record<string, string> {
   const origin = request.headers.get('Origin') || '';
   const allowedOrigins = ['https://www.fabulous-art.ch', 'https://fabulous-art.ch'];
   const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
-  const corsHeaders = {
+  return {
     'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
+}
 
-  // --- Rate Limiting ---
+export const onRequestPost: PagesFunction<Env> = async (context) => {
+  const { request, env } = context;
+  const cors = corsHeadersFor(request);
   const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+  // --- Total request size cap (cheap early reject) ---
+  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10);
+  if (contentLength > MAX_REQUEST_SIZE) {
+    return json(413, { success: false, error: 'Anfrage zu gross (max. 10 MB Bild)' }, cors);
+  }
+
+  // --- Rate limiting (best-effort layer) ---
   if (!checkRateLimit(clientIP)) {
-    return new Response(
-      JSON.stringify({ success: false, error: 'Zu viele Anfragen. Bitte versuche es später erneut.' }),
-      { status: 429, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    return json(429, { success: false, error: 'Zu viele Anfragen. Bitte versuche es später erneut.' }, cors);
   }
 
   try {
     const formData = await request.formData();
 
-    // --- Verify Turnstile Token ---
-    const turnstileToken = formData.get('cf-turnstile-response') as string || '';
+    // --- Turnstile ---
+    const turnstileToken = (formData.get('cf-turnstile-response') as string) || '';
     const turnstileValid = await verifyTurnstile(turnstileToken, env.TURNSTILE_SECRET, clientIP);
     if (!turnstileValid) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Bot-Überprüfung fehlgeschlagen. Bitte lade die Seite neu.' }),
-        { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+      return json(403, { success: false, error: 'Bot-Überprüfung fehlgeschlagen. Bitte versuche es erneut.' }, cors);
     }
 
-    // --- Extract order data ---
+    // --- Extract order data (raw, length-capped; NO escaping here) ---
     const orderData: Record<string, string> = {};
-    const fields = [
-      'package', 'size', 'format', 'people', 'shipping',
-      'idea', 'firstName', 'lastName', 'email', 'phone',
-      'address', 'zip', 'city', 'country', 'locale',
+    const textFields: Array<keyof typeof FIELD_LIMITS> = [
+      'firstName', 'lastName', 'email', 'phone', 'address', 'zip', 'city', 'country', 'idea', 'message',
     ];
-
-    for (const field of fields) {
+    for (const field of textFields) {
       const value = formData.get(field);
       if (value && typeof value === 'string') {
-        orderData[field] = escapeHtml(value);
+        const cleaned = cleanText(value, FIELD_LIMITS[field]);
+        if (cleaned) orderData[field] = cleaned;
       }
     }
-
-    // --- Price data (only allow digits and dots) ---
-    const priceFields = ['drawingPrice', 'creativePrice', 'packagingPrice', 'shippingPrice', 'totalPrice'];
-    for (const field of priceFields) {
+    // Enum-like fields: validated against allowlists below.
+    for (const field of ['package', 'size', 'format', 'people', 'shipping', 'locale'] as const) {
       const value = formData.get(field);
-      if (value && typeof value === 'string') {
-        orderData[field] = value.replace(/[^0-9.]/g, '');
-      }
+      if (value && typeof value === 'string') orderData[field] = cleanText(value, 20);
     }
 
     // --- Validate required fields ---
-    const required = ['package', 'size', 'shipping', 'firstName', 'lastName', 'email', 'address', 'zip', 'city'];
+    const required = ['package', 'size', 'shipping', 'firstName', 'lastName', 'email', 'address', 'zip', 'city', 'country'];
     for (const field of required) {
       if (!orderData[field]) {
-        return new Response(
-          JSON.stringify({ success: false, error: `Pflichtfeld fehlt: ${field}` }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return json(400, { success: false, error: `Pflichtfeld fehlt: ${field}` }, cors);
       }
     }
 
+    // --- Validate enums ---
+    if (!(PACKAGES as string[]).includes(orderData.package)) {
+      return json(400, { success: false, error: 'Ungültiges Paket' }, cors);
+    }
+    if (!(SIZES as string[]).includes(orderData.size)) {
+      return json(400, { success: false, error: 'Ungültige Grösse' }, cors);
+    }
+    if (!(SHIPPING_ZONES as string[]).includes(orderData.shipping)) {
+      return json(400, { success: false, error: 'Ungültiges Versandziel' }, cors);
+    }
+    if (orderData.format && !['horizontal', 'vertical'].includes(orderData.format)) {
+      delete orderData.format;
+    }
+    const locale = orderData.locale === 'en' ? 'en' : 'de';
+    orderData.locale = locale;
+
     // --- Validate email ---
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(orderData.email)) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Ungültige E-Mail-Adresse' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+    if (!EMAIL_RE.test(orderData.email)) {
+      return json(400, { success: false, error: 'Ungültige E-Mail-Adresse' }, cors);
     }
 
-    // --- Handle image upload to R2 ---
-    let imageUrl: string | null = null;
+    // --- Authoritative server-side price computation ---
+    // Client-submitted prices are deliberately ignored: the emailed quote is
+    // always computed here from src/data/pricing.json. getQuote() returns
+    // null for unavailable combinations (e.g. Creative A0 with 3–4 people) —
+    // those orders are rejected, never priced at CHF 0.
+    const quote: Quote | null = getQuote(orderData.package, orderData.size, orderData.people ?? '1', orderData.shipping);
+    if (!quote) {
+      return json(400, { success: false, error: 'Diese Kombination ist nicht verfügbar.' }, cors);
+    }
+
+    // --- Order ID: sortable date prefix + random suffix ---
+    const orderId = `${new Date().toISOString().slice(0, 10)}-${crypto.randomUUID().slice(0, 8)}`;
+
+    // --- Image upload to R2 (orders/{orderId}/...) ---
+    let imageKey: string | null = null;
     let imageName: string | null = null;
     const imageFile = formData.get('image') as File | null;
 
     if (imageFile && imageFile.size > 0) {
-      // Validate file
       if (!ALLOWED_TYPES.includes(imageFile.type)) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Nur JPG, PNG oder WEBP erlaubt' }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return json(400, { success: false, error: 'Nur JPG, PNG oder WEBP erlaubt' }, cors);
       }
-
       if (imageFile.size > MAX_FILE_SIZE) {
-        return new Response(
-          JSON.stringify({ success: false, error: 'Datei zu gross (max. 10 MB)' }),
-          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-        );
+        return json(400, { success: false, error: 'Datei zu gross (max. 10 MB)' }, cors);
       }
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const sanitizedName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const r2Key = `orders/${timestamp}_${sanitizedName}`;
+      const sanitizedName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
+      imageKey = `orders/${orderId}/${sanitizedName}`;
 
-      // Upload to R2
-      await env.ORDER_IMAGES.put(r2Key, imageFile.stream(), {
+      await env.ORDER_IMAGES.put(imageKey, imageFile.stream(), {
         httpMetadata: { contentType: imageFile.type },
         customMetadata: {
-          originalName: imageFile.name,
-          orderEmail: orderData.email,
+          orderId,
+          originalName: imageFile.name.slice(0, 200),
           uploadedAt: new Date().toISOString(),
         },
       });
-
-      imageUrl = r2Key;
       imageName = imageFile.name;
     }
 
-    // --- Build email content ---
-    const locale = orderData.locale || 'de';
-    const emailHtml = buildEmailHtml(orderData, imageName, imageUrl, locale);
-    const emailText = buildEmailText(orderData, imageName, locale);
-    const confirmHtml = buildCustomerConfirmationHtml(orderData, locale);
-    const confirmText = buildCustomerConfirmationText(orderData, locale);
-
-    // --- Send emails via Mailjet (both in one request) ---
-    const confirmSubject = locale === 'de'
-      ? 'Deine Anfrage bei FABulousART — Bestätigung'
-      : 'Your FABulousART inquiry — Confirmation';
-
-    const mailjetResponse = await fetch('https://api.mailjet.com/v3.1/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${env.MAILJET_API_KEY}:${env.MAILJET_SECRET_KEY}`)}`,
-      },
-      body: JSON.stringify({
-        Messages: [
-          // Message 1: Notification to Fabienne
-          {
-            From: {
-              Email: env.MAILJET_FROM_EMAIL,
-              Name: env.MAILJET_FROM_NAME || 'FABulousART',
-            },
-            To: [
-              {
-                Email: env.FABIENNE_EMAIL,
-                Name: 'Fabienne Meyer',
-              },
-            ],
-            Subject: `Neue Bestellung: ${orderData.package} — ${orderData.firstName} ${orderData.lastName}`,
-            TextPart: emailText,
-            HTMLPart: emailHtml,
-            ReplyTo: {
-              Email: orderData.email,
-              Name: `${orderData.firstName} ${orderData.lastName}`,
-            },
-          },
-          // Message 2: Confirmation to customer
-          {
-            From: {
-              Email: env.MAILJET_FROM_EMAIL,
-              Name: 'Fabienne Meyer — FABulousART',
-            },
-            To: [
-              {
-                Email: orderData.email,
-                Name: `${orderData.firstName} ${orderData.lastName}`,
-              },
-            ],
-            Subject: confirmSubject,
-            TextPart: confirmText,
-            HTMLPart: confirmHtml,
-            ReplyTo: {
-              Email: env.FABIENNE_EMAIL,
-              Name: 'Fabienne Meyer',
-            },
-          },
-        ],
-      }),
+    // --- Persist the order to R2 BEFORE emailing (system of record) ---
+    const orderRecord = {
+      orderId,
+      receivedAt: new Date().toISOString(),
+      locale,
+      data: orderData,
+      quote,
+      imageKey,
+      imageName,
+    };
+    await env.ORDER_IMAGES.put(`orders/${orderId}/order.json`, JSON.stringify(orderRecord, null, 2), {
+      httpMetadata: { contentType: 'application/json' },
+      customMetadata: { orderId, orderEmail: orderData.email },
     });
 
-    if (!mailjetResponse.ok) {
-      const errorBody = await mailjetResponse.text();
-      console.error('Mailjet error:', errorBody);
-      return new Response(
-        JSON.stringify({ success: false, error: 'E-Mail konnte nicht gesendet werden' }),
-        { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
+    // --- Emails via Mailjet (notification layer; one retry) ---
+    const emailInput: OrderEmailInput = { data: orderData, quote, imageName, imageKey, orderId, locale };
+    const mailjetBody = JSON.stringify({
+      Messages: [
+        {
+          From: { Email: env.MAILJET_FROM_EMAIL, Name: env.MAILJET_FROM_NAME || 'FABulousART' },
+          To: [{ Email: env.FABIENNE_EMAIL, Name: 'Fabienne Meyer' }],
+          Subject: buildOwnerSubject(emailInput),
+          TextPart: buildOwnerText(emailInput),
+          HTMLPart: buildOwnerHtml(emailInput),
+          ReplyTo: { Email: orderData.email, Name: `${orderData.firstName} ${orderData.lastName}` },
+        },
+        {
+          From: { Email: env.MAILJET_FROM_EMAIL, Name: 'Fabienne Meyer — FABulousART' },
+          To: [{ Email: orderData.email, Name: `${orderData.firstName} ${orderData.lastName}` }],
+          Subject: buildCustomerSubject(locale),
+          TextPart: buildCustomerText(emailInput),
+          HTMLPart: buildCustomerHtml(emailInput),
+          ReplyTo: { Email: env.FABIENNE_EMAIL, Name: 'Fabienne Meyer' },
+        },
+      ],
+    });
+
+    const sendMail = () =>
+      fetch('https://api.mailjet.com/v3.1/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Basic ${btoa(`${env.MAILJET_API_KEY}:${env.MAILJET_SECRET_KEY}`)}`,
+        },
+        body: mailjetBody,
+      });
+
+    let mailSent = false;
+    try {
+      let res = await sendMail();
+      if (!res.ok) {
+        console.error(`Mailjet attempt 1 failed (${res.status}):`, await res.text());
+        res = await sendMail();
+        if (!res.ok) console.error(`Mailjet attempt 2 failed (${res.status}):`, await res.text());
+      }
+      mailSent = res.ok;
+    } catch (err) {
+      console.error('Mailjet request error:', err);
     }
 
-    // --- Success ---
-    return new Response(
-      JSON.stringify({ success: true, message: 'Bestellung erfolgreich übermittelt' }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    if (!mailSent) {
+      // The order is durably stored in R2 — do NOT tell the customer it
+      // failed (that leads to duplicate submissions). Log loudly instead.
+      console.error(`ORDER ${orderId} PERSISTED BUT EMAIL FAILED — check R2 orders/${orderId}/order.json and Mailjet status.`);
+    }
 
+    return json(200, { success: true, orderId, message: 'Bestellung erfolgreich übermittelt' }, cors);
   } catch (err) {
     console.error('Order API error:', err);
-    return new Response(
-      JSON.stringify({ success: false, error: 'Interner Serverfehler' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    );
+    return json(500, { success: false, error: 'Interner Serverfehler' }, cors);
   }
 };
 
 // Handle CORS preflight
 export const onRequestOptions: PagesFunction = async (context) => {
-  const origin = context.request.headers.get('Origin') || '';
-  const allowedOrigins = ['https://www.fabulous-art.ch', 'https://fabulous-art.ch'];
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': corsOrigin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+  return new Response(null, { status: 204, headers: corsHeadersFor(context.request) });
 };
-
-// --- Email Templates ---
-
-function buildEmailHtml(
-  data: Record<string, string>,
-  imageName: string | null,
-  imageUrl: string | null,
-  locale: string
-): string {
-  const packageLabels: Record<string, string> = {
-    portrait: 'Portrait',
-    family: 'Family Portrait',
-    creative: 'Creative Package',
-  };
-
-  const shippingLabels: Record<string, string> = {
-    switzerland: 'Schweiz',
-    europe: 'EU',
-    worldwide: 'Weltweit',
-  };
-
-  const formatLabels: Record<string, string> = {
-    landscape: 'Querformat',
-    portrait: 'Hochformat',
-  };
-
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #171717; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: #fff; }
-    .header { background: #0a0a0a; color: #fff; padding: 32px; text-align: center; }
-    .header h1 { font-size: 24px; font-weight: 300; letter-spacing: 0.1em; margin: 0; }
-    .header p { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: #a3a3a3; margin: 8px 0 0; }
-    .body { padding: 32px; }
-    .section { margin-bottom: 24px; }
-    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #737373; margin-bottom: 12px; border-bottom: 1px solid #e5e5e5; padding-bottom: 8px; }
-    .row { display: flex; padding: 6px 0; }
-    .label { color: #737373; font-size: 14px; min-width: 140px; }
-    .value { font-size: 14px; font-weight: 500; }
-    table { width: 100%; border-collapse: collapse; }
-    table td { padding: 6px 0; font-size: 14px; vertical-align: top; }
-    table td:first-child { color: #737373; width: 140px; }
-    table td:last-child { font-weight: 500; }
-    .price-row td { border-top: 1px solid #e5e5e5; padding-top: 10px; }
-    .total-row td { border-top: 2px solid #0a0a0a; font-size: 16px; font-weight: 600; padding-top: 12px; }
-    .idea-box { background: #fafafa; border-left: 3px solid #0a0a0a; padding: 16px; margin: 12px 0; font-style: italic; color: #525252; }
-    .image-note { background: #f0f9ff; border: 1px solid #bae6fd; padding: 12px 16px; border-radius: 4px; font-size: 13px; color: #0369a1; }
-    .footer { padding: 24px 32px; background: #fafafa; text-align: center; font-size: 12px; color: #a3a3a3; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Neue Bestellung</h1>
-      <p>${packageLabels[data.package] || data.package}</p>
-    </div>
-    <div class="body">
-
-      <div class="section">
-        <div class="section-title">Auftrag</div>
-        <table>
-          <tr><td>Paket</td><td>${packageLabels[data.package] || data.package}</td></tr>
-          <tr><td>Grösse</td><td>${data.size || '—'}</td></tr>
-          ${data.format ? `<tr><td>Format</td><td>${formatLabels[data.format] || data.format}</td></tr>` : ''}
-          ${data.people ? `<tr><td>Personen</td><td>${data.people}</td></tr>` : ''}
-          <tr><td>Versand</td><td>${shippingLabels[data.shipping] || data.shipping}</td></tr>
-        </table>
-      </div>
-
-      ${data.drawingPrice ? `
-      <div class="section">
-        <div class="section-title">Preise</div>
-        <table>
-          <tr><td>Zeichnung</td><td>CHF ${data.drawingPrice}</td></tr>
-          ${data.creativePrice && data.creativePrice !== '0' ? `<tr><td>Creative Package</td><td>CHF ${data.creativePrice}</td></tr>` : ''}
-          <tr><td>Verpackung</td><td>CHF ${data.packagingPrice || '20'}</td></tr>
-          <tr><td>Versand</td><td>CHF ${data.shippingPrice || '—'}</td></tr>
-          <tr class="total-row"><td>Total</td><td>CHF ${data.totalPrice || '—'}</td></tr>
-        </table>
-      </div>
-      ` : ''}
-
-      ${data.idea ? `
-      <div class="section">
-        <div class="section-title">Idee / Beschreibung</div>
-        <div class="idea-box">${data.idea.replace(/\n/g, '<br>')}</div>
-      </div>
-      ` : ''}
-
-      ${imageName ? `
-      <div class="section">
-        <div class="section-title">Referenzbild</div>
-        <div class="image-note">
-          📎 <strong>${imageName}</strong><br>
-          Gespeichert in R2: <code>${imageUrl}</code>
-        </div>
-      </div>
-      ` : ''}
-
-      <div class="section">
-        <div class="section-title">Kontakt</div>
-        <table>
-          <tr><td>Name</td><td>${data.firstName} ${data.lastName}</td></tr>
-          <tr><td>E-Mail</td><td><a href="mailto:${data.email}">${data.email}</a></td></tr>
-          ${data.phone ? `<tr><td>Telefon</td><td>${data.phone}</td></tr>` : ''}
-          <tr><td>Adresse</td><td>${data.address}, ${data.zip} ${data.city}</td></tr>
-          ${data.country ? `<tr><td>Land</td><td>${data.country}</td></tr>` : ''}
-        </table>
-      </div>
-
-    </div>
-    <div class="footer">
-      Diese E-Mail wurde automatisch über fabulous-art.ch gesendet.<br>
-      Antworten geht direkt an den Kunden (Reply-To: ${data.email}).
-    </div>
-  </div>
-</body>
-</html>`.trim();
-}
-
-function buildEmailText(
-  data: Record<string, string>,
-  imageName: string | null,
-  locale: string
-): string {
-  let text = `NEUE BESTELLUNG — FABulousART\n`;
-  text += `${'='.repeat(40)}\n\n`;
-  text += `Paket: ${data.package}\n`;
-  text += `Grösse: ${data.size}\n`;
-  if (data.format) text += `Format: ${data.format}\n`;
-  if (data.people) text += `Personen: ${data.people}\n`;
-  text += `Versand: ${data.shipping}\n\n`;
-
-  if (data.totalPrice) {
-    text += `PREISE\n${'-'.repeat(20)}\n`;
-    text += `Zeichnung: CHF ${data.drawingPrice}\n`;
-    if (data.creativePrice && data.creativePrice !== '0') text += `Creative: CHF ${data.creativePrice}\n`;
-    text += `Verpackung: CHF ${data.packagingPrice || '20'}\n`;
-    text += `Versand: CHF ${data.shippingPrice}\n`;
-    text += `Total: CHF ${data.totalPrice}\n\n`;
-  }
-
-  if (data.idea) text += `IDEE\n${'-'.repeat(20)}\n${data.idea}\n\n`;
-  if (imageName) text += `REFERENZBILD: ${imageName}\n\n`;
-
-  text += `KONTAKT\n${'-'.repeat(20)}\n`;
-  text += `${data.firstName} ${data.lastName}\n`;
-  text += `${data.email}\n`;
-  if (data.phone) text += `${data.phone}\n`;
-  text += `${data.address}, ${data.zip} ${data.city}\n`;
-  if (data.country) text += `${data.country}\n`;
-
-  return text;
-}
-
-// --- Customer Confirmation Email Templates ---
-
-function buildCustomerConfirmationHtml(
-  data: Record<string, string>,
-  locale: string
-): string {
-  const isDE = locale === 'de';
-
-  const packageLabels: Record<string, Record<string, string>> = {
-    de: { portrait: 'Portrait', family: 'Familien-Portrait', creative: 'Creative Package' },
-    en: { portrait: 'Portrait', family: 'Family Portrait', creative: 'Creative Package' },
-  };
-
-  const shippingLabels: Record<string, Record<string, string>> = {
-    de: { switzerland: 'Schweiz', europe: 'EU', worldwide: 'Weltweit' },
-    en: { switzerland: 'Switzerland', europe: 'EU', worldwide: 'Worldwide' },
-  };
-
-  const pkg = packageLabels[locale]?.[data.package] || data.package;
-  const ship = shippingLabels[locale]?.[data.shipping] || data.shipping;
-
-  const t = {
-    greeting: isDE
-      ? `Liebe/r ${data.firstName},`
-      : `Dear ${data.firstName},`,
-    thankYou: isDE
-      ? 'Vielen Dank für deine Anfrage! Ich freue mich sehr über dein Interesse an einer individuellen Zeichnung.'
-      : 'Thank you so much for your inquiry! I\'m thrilled about your interest in a custom drawing.',
-    received: isDE
-      ? 'Ich habe deine Anfrage erhalten und werde mich innerhalb von 2–3 Werktagen bei dir melden, um die Details zu besprechen.'
-      : 'I\'ve received your inquiry and will get back to you within 2–3 business days to discuss the details.',
-    summary: isDE ? 'Zusammenfassung deiner Anfrage' : 'Summary of your inquiry',
-    package: isDE ? 'Paket' : 'Package',
-    size: isDE ? 'Grösse' : 'Size',
-    people: isDE ? 'Personen' : 'People',
-    shipping: isDE ? 'Versand' : 'Shipping',
-    drawing: isDE ? 'Zeichnung' : 'Drawing',
-    packaging: isDE ? 'Verpackung' : 'Packaging',
-    total: isDE ? 'Geschätzter Gesamtpreis' : 'Estimated total',
-    idea: isDE ? 'Deine Idee' : 'Your idea',
-    image: isDE ? 'Referenzbild hochgeladen' : 'Reference image uploaded',
-    questions: isDE
-      ? 'Falls du Fragen hast, antworte einfach auf diese E-Mail — ich bin gerne für dich da.'
-      : 'If you have any questions, simply reply to this email — I\'m happy to help.',
-    closing: isDE ? 'Herzliche Grüsse,' : 'Warm regards,',
-    note: isDE
-      ? 'Dies ist eine automatische Bestätigung. Bitte beachte, dass die genannten Preise unverbindlich sind und im persönlichen Gespräch finalisiert werden.'
-      : 'This is an automated confirmation. Please note that the prices mentioned are non-binding and will be finalized during our personal consultation.',
-  };
-
-  return `
-<!DOCTYPE html>
-<html lang="${locale}">
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #171717; margin: 0; padding: 0; background: #f5f5f5; }
-    .container { max-width: 600px; margin: 0 auto; background: #fff; }
-    .header { background: #0a0a0a; color: #fff; padding: 40px 32px; text-align: center; }
-    .header h1 { font-size: 28px; font-weight: 300; letter-spacing: 0.15em; margin: 0; }
-    .header p { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #a3a3a3; margin: 12px 0 0; }
-    .body { padding: 40px 32px; }
-    .greeting { font-size: 16px; margin-bottom: 20px; }
-    .text { font-size: 14px; line-height: 1.7; color: #404040; margin-bottom: 16px; }
-    .summary-card { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 24px; margin: 28px 0; }
-    .summary-title { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #737373; margin-bottom: 16px; }
-    table { width: 100%; border-collapse: collapse; }
-    table td { padding: 8px 0; font-size: 14px; vertical-align: top; }
-    table td:first-child { color: #737373; width: 140px; }
-    table td:last-child { font-weight: 500; }
-    .total-row td { border-top: 2px solid #0a0a0a; font-size: 15px; font-weight: 600; padding-top: 14px; margin-top: 8px; }
-    .idea-box { background: #fff; border-left: 3px solid #0a0a0a; padding: 14px 16px; margin: 12px 0; font-style: italic; color: #525252; font-size: 14px; }
-    .closing { font-size: 14px; line-height: 1.7; color: #404040; margin-top: 28px; }
-    .signature { margin-top: 8px; font-weight: 500; font-size: 14px; }
-    .footer { padding: 24px 32px; background: #fafafa; border-top: 1px solid #e5e5e5; text-align: center; font-size: 11px; color: #a3a3a3; line-height: 1.6; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>FABulousART</h1>
-      <p>Hyperrealistic Charcoal Art</p>
-    </div>
-    <div class="body">
-      <p class="greeting">${t.greeting}</p>
-      <p class="text">${t.thankYou}</p>
-      <p class="text">${t.received}</p>
-
-      <div class="summary-card">
-        <div class="summary-title">${t.summary}</div>
-        <table>
-          <tr><td>${t.package}</td><td>${pkg}</td></tr>
-          <tr><td>${t.size}</td><td>${data.size || '—'}</td></tr>
-          ${data.people ? `<tr><td>${t.people}</td><td>${data.people}</td></tr>` : ''}
-          <tr><td>${t.shipping}</td><td>${ship}</td></tr>
-        </table>
-
-        ${data.totalPrice ? `
-        <table style="margin-top: 16px;">
-          <tr><td>${t.drawing}</td><td>CHF ${data.drawingPrice}</td></tr>
-          ${data.creativePrice && data.creativePrice !== '0' ? `<tr><td>Creative</td><td>CHF ${data.creativePrice}</td></tr>` : ''}
-          <tr><td>${t.packaging}</td><td>CHF ${data.packagingPrice || '20'}</td></tr>
-          <tr><td>${t.shipping}</td><td>CHF ${data.shippingPrice || '—'}</td></tr>
-          <tr class="total-row"><td>${t.total}</td><td>CHF ${data.totalPrice}</td></tr>
-        </table>
-        ` : ''}
-
-        ${data.idea ? `
-        <div style="margin-top: 16px;">
-          <div class="summary-title">${t.idea}</div>
-          <div class="idea-box">${data.idea.replace(/\n/g, '<br>')}</div>
-        </div>
-        ` : ''}
-
-        ${data.image ? `<p style="font-size: 13px; color: #737373; margin-top: 12px;">📎 ${t.image}</p>` : ''}
-      </div>
-
-      <p class="text">${t.questions}</p>
-
-      <div class="closing">
-        <p>${t.closing}</p>
-        <p class="signature">Fabienne Meyer</p>
-        <p style="font-size: 13px; color: #737373;">FABulousART — fabulous-art.ch</p>
-      </div>
-    </div>
-    <div class="footer">
-      ${t.note}<br><br>
-      FABulousART &middot; Fabienne Meyer &middot; Zürich, Switzerland<br>
-      <a href="https://www.fabulous-art.ch" style="color: #737373;">www.fabulous-art.ch</a>
-    </div>
-  </div>
-</body>
-</html>`.trim();
-}
-
-function buildCustomerConfirmationText(
-  data: Record<string, string>,
-  locale: string
-): string {
-  const isDE = locale === 'de';
-  const pkg = data.package;
-
-  let text = isDE
-    ? `Liebe/r ${data.firstName},\n\nVielen Dank für deine Anfrage bei FABulousART!\n\n`
-    : `Dear ${data.firstName},\n\nThank you for your inquiry at FABulousART!\n\n`;
-
-  text += isDE ? `ZUSAMMENFASSUNG\n${'-'.repeat(30)}\n` : `SUMMARY\n${'-'.repeat(30)}\n`;
-  text += `${isDE ? 'Paket' : 'Package'}: ${pkg}\n`;
-  text += `${isDE ? 'Grösse' : 'Size'}: ${data.size}\n`;
-  if (data.people) text += `${isDE ? 'Personen' : 'People'}: ${data.people}\n`;
-  text += `${isDE ? 'Versand' : 'Shipping'}: ${data.shipping}\n`;
-
-  if (data.totalPrice) {
-    text += `\n${isDE ? 'Geschätzter Gesamtpreis' : 'Estimated total'}: CHF ${data.totalPrice}\n`;
-  }
-
-  if (data.idea) text += `\n${isDE ? 'Deine Idee' : 'Your idea'}:\n${data.idea}\n`;
-
-  text += isDE
-    ? `\nIch werde mich innerhalb von 2–3 Werktagen bei dir melden.\n\nHerzliche Grüsse,\nFabienne Meyer\nFABulousART — fabulous-art.ch`
-    : `\nI'll get back to you within 2–3 business days.\n\nWarm regards,\nFabienne Meyer\nFABulousART — fabulous-art.ch`;
-
-  return text;
-}

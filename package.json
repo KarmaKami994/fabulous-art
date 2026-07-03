@@ -8,10 +8,24 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check": "astro check",
+    "test": "vitest run",
+    "assets": "node scripts/generate-assets.mjs"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.2.0",
     "astro": "^5.2.0",
-    "@astrojs/sitemap": "^3.2.0"
+    "marked": "^18.0.5",
+    "sanitize-html": "^2.17.5",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "@types/sanitize-html": "^2.16.1",
+    "png-to-ico": "^3.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
   }
 }

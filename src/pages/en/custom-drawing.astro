@@ -2,9 +2,10 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CommissionWizards from '@/components/CommissionWizards.astro';
 import { customDrawingTranslations } from '@/i18n/customDrawing';
+import { commissionServiceJsonLd } from '@/lib/seo';
 
 const t = customDrawingTranslations.en;
 ---
-<BaseLayout title={t.pageTitle} locale="en" description={t.pageDesc}>
+<BaseLayout title={t.pageTitle} locale="en" description={t.pageDesc} jsonLd={commissionServiceJsonLd('en')}>
   <CommissionWizards locale="en" />
 </BaseLayout>

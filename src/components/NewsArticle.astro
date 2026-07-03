@@ -7,6 +7,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import { formatDate } from '@/lib/format';
 import { renderMarkdown, getYouTubeId } from '@/lib/markdown';
 import type { Locale } from '@/i18n/utils';
+import { newsArticleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
 
 interface Post {
   slug: string;
@@ -36,10 +37,17 @@ const backLabel = locale === 'de' ? '← Zurück zu News' : '← Back to News';
 const allLabel = locale === 'de' ? '← Alle News' : '← All News';
 
 const youtubeId = getYouTubeId(post.youtube);
+const jsonLd = [
+  newsArticleJsonLd({ title, excerpt, date: post.date, image: post.image, slug: post.slug, locale }),
+  breadcrumbJsonLd([
+    { name: 'News', path: `/${locale}/news` },
+    { name: title, path: `/${locale}/news/${post.slug}` },
+  ]),
+];
 const bodyHtml = renderMarkdown(body);
 ---
 
-<BaseLayout title={title} locale={locale} description={excerpt} ogType="article">
+<BaseLayout title={title} locale={locale} description={excerpt} ogType="article" publishedTime={post.date} ogImage={post.image ? new URL(post.image, "https://www.fabulous-art.ch").href : undefined} jsonLd={jsonLd}>
 
   <article class="news-article">
     <div class="container container--narrow">

@@ -20,6 +20,10 @@ interface Props {
 
 const { locale } = Astro.props;
 
+const pageTitle =
+  locale === 'de'
+    ? 'Hyperrealistische Kohlezeichnungen & Auftragsportraits aus Zürich'
+    : 'Hyperrealistic Charcoal Drawings & Commissioned Portraits from Zurich';
 const description =
   locale === 'de'
     ? 'Hyperrealistische Kohlezeichnungen von Fabienne Meyer, Zürich. Individuelle Auftragszeichnungen und Portfolio.'
@@ -47,7 +51,7 @@ const parallaxItems = [
 const packages = ['portrait', 'family', 'creative'] as const;
 ---
 
-<BaseLayout title="Home" locale={locale} description={description}>
+<BaseLayout title={pageTitle} locale={locale} description={description}>
 
   <!-- Hero Section -->
   <section class="hero">

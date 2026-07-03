@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { portfolioWorks, type PortfolioWork } from '@/lib/portfolio';
 import { t } from '@/i18n/utils';
+import { artworkJsonLd, breadcrumbJsonLd } from '@/lib/seo';
 
 const locale = 'en';
 
@@ -17,12 +18,22 @@ const work = portfolioWorks.find((w) => w.slug === slug);
 if (!work) {
   return Astro.redirect('/en/portfolio');
 }
+
+const jsonLd = [
+  artworkJsonLd(work, locale),
+  breadcrumbJsonLd([
+    { name: 'Portfolio', path: `/${locale}/portfolio` },
+    { name: work.title, path: `/${locale}/portfolio/${work.slug}` },
+  ]),
+];
 ---
 
 <BaseLayout
   title={work.title}
   locale={locale}
   description={work.description.en}
+  ogImage={work.imageFull}
+  jsonLd={jsonLd}
 >
   <section class="detail-page">
     <div class="container">

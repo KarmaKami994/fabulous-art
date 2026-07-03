@@ -52,7 +52,7 @@ Locale pages are now 4–13-line shells over shared components — DE/EN can no 
 
 ## Config, DX, CI (Review #9, #10 + "zero tests")
 
-- Sveltia CMS pinned to `@0.169.1` (was: floating latest with repo write access).
+- Sveltia CMS self-hosted at `/admin/sveltia-cms.js`, pinned at 0.169.1 (was: floating latest loaded from unpkg with repo write access — no third-party runtime scripts remain).
 - CSP: `unpkg.com` removed from the main site's `script-src` (admin keeps it); obsolete `X-XSS-Protection` / `interest-cohort` dropped. Fonts kept (D2).
 - Typed `t()` — translation-key typos now fail `npm run check` (0 errors).
 - `.env.example` rewritten to the real contract (removed unused `R2_*` keys, fixed `MAILJET_SENDER_EMAIL` → `MAILJET_FROM_EMAIL`, added required `TURNSTILE_SECRET`). README rewritten with ops runbook.
@@ -65,3 +65,9 @@ Locale pages are now 4–13-line shells over shared components — DE/EN can no 
 3. Ensure `TURNSTILE_SECRET` is set **before** deploying — orders fail closed without it.
 
 Deferred by decision: self-hosted fonts (D1), multi-image upload (E1). Not in approved scope: wiring `about.json` (still unimported — the About page text is code-edited only).
+
+## SEO round (post-launch)
+
+- **Homepage titles** rewritten from "Home — FabulousArt" to keyword-rich, locale-specific titles (the single most valuable title tag on the site was empty of search terms).
+- **Structured data** (`src/lib/seo.ts`, shared by both locales): `VisualArtwork` + `BreadcrumbList` on every portfolio piece (medium, year, size, price as Offer, artwork as og:image); `NewsArticle` with `datePublished` + `article:published_time` on news posts; `Service` + `OfferCatalog` on the commission page with starting prices computed from `src/lib/pricing.ts` — schema prices can never drift from what the wizard charges.
+- `og:image:alt` / `twitter:image:alt`; root redirect stub `noindex`; tsconfig excludes `public/` (the self-hosted 1.9 MB CMS bundle OOM-crashed `astro check` — would have broken CI).

@@ -2,6 +2,19 @@
   "r2_base": "https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev",
   "works": [
     {
+      "title": "Deep Breath",
+      "slug": "deep-breath",
+      "thumbnail": "portfolio/Thumbnail/Deepbreath.png",
+      "fullsize": "portfolio/Fullsize/Deepbreath_full.png",
+      "size": "70 x 100 cm",
+      "medium": "Charcoal on paper",
+      "year": 2026,
+      "price": "CHF 10'000",
+      "sold": false,
+      "description_de": "Ein Mann, gefangen zwischen Untergehen und Auftauchen. Eine wassergefüllte Glaskugel umschliesst seinen Kopf. Seine eigene Blase, aus der es kein Entkommen gibt, ausser durch ihn selbst.\n\nDeep Breath erzählt vom stillen Kampf mit den eigenen Gedanken, vom Druck, der sich wie Wasser um uns schliesst, ohne dass jemand sieht, wie nah wir am Ertrinken sind.\nDer angehaltene Atem ist die Antwort: Niemand sonst entscheidet, ob wir untergehen oder auftauchen. Es ist der Moment, sich der Dunkelheit hinzugeben oder dem Licht entgegenzuschwimmen.",
+      "description_en": "A man, caught between sinking and surfacing. A water-filled glass sphere encloses his head. His own bubble, one he can only escape from himself.\n\nDeep Breath speaks to the silent struggle with our own thoughts, the pressure that closes around us like water, unseen by anyone else, no matter how close we come to drowning.\nThe held breath is the answer: no one else decides whether we sink or rise. It's the moment of surrendering to the darkness or swimming toward the light."
+    },
+    {
       "title": "The dance of eternal threads",
       "slug": "the-dance-of-eternal-threads",
       "thumbnail": "portfolio/Thumbnail/Thedanceofeternalthreads.png",

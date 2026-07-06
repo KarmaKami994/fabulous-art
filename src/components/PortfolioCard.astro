@@ -1,5 +1,6 @@
 ---
 import { type Locale } from '@/i18n/utils';
+import { Image } from 'astro:assets';
 
 interface Props {
   title: string;
@@ -18,7 +19,17 @@ const detailHref = `/${locale}/portfolio/${slug}`;
 
 <a href={detailHref} class="portfolio-card" aria-label={title}>
   <div class="portfolio-card__image-wrap">
-    <img src={image} alt={title} loading="lazy" class="portfolio-card__image" />
+    <Image
+      src={image}
+      alt={title}
+      inferSize
+      widths={[400, 640, 900]}
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      format="webp"
+      quality={80}
+      loading="lazy"
+      class="portfolio-card__image"
+    />
   </div>
   <div class="portfolio-card__overlay">
     <div class="portfolio-card__info">
@@ -48,7 +59,7 @@ const detailHref = `/${locale}/portfolio/${slug}`;
     inset: 0;
   }
 
-  .portfolio-card__image {
+  .portfolio-card :global(.portfolio-card__image) {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -71,7 +82,7 @@ const detailHref = `/${locale}/portfolio/${slug}`;
     opacity: 1;
   }
 
-  .portfolio-card:hover .portfolio-card__image {
+  .portfolio-card:hover :global(.portfolio-card__image) {
     transform: scale(1.03);
     opacity: 0.3;
   }

@@ -71,3 +71,7 @@ Deferred by decision: self-hosted fonts (D1), multi-image upload (E1). Not in ap
 - **Homepage titles** rewritten from "Home — FabulousArt" to keyword-rich, locale-specific titles (the single most valuable title tag on the site was empty of search terms).
 - **Structured data** (`src/lib/seo.ts`, shared by both locales): `VisualArtwork` + `BreadcrumbList` on every portfolio piece (medium, year, size, price as Offer, artwork as og:image); `NewsArticle` with `datePublished` + `article:published_time` on news posts; `Service` + `OfferCatalog` on the commission page with starting prices computed from `src/lib/pricing.ts` — schema prices can never drift from what the wizard charges.
 - `og:image:alt` / `twitter:image:alt`; root redirect stub `noindex`; tsconfig excludes `public/` (the self-hosted 1.9 MB CMS bundle OOM-crashed `astro check` — would have broken CI).
+
+## Portfolio thumbnail optimization (post-SEO)
+
+- Portfolio grid + home parallax now run R2 thumbnails through astro:assets remote optimization: build fetches the originals from R2 and emits responsive WebP (400/640/900w grid, 300/480w parallax) with `srcset`/`sizes`. Editors can upload any resolution to R2 — the build normalizes it. Detail pages (`imageFull`) intentionally untouched. Requires `image.domains` (astro.config.mjs) to include the R2 host. Build takes slightly longer (downloads + resizes ~26 remote images).

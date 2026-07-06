@@ -88,7 +88,7 @@ const packages = ['portrait', 'family', 'creative'] as const;
       <div class="parallax-teaser__floating" id="floating-container">
         {parallaxItems.map(item => (
           <a href={`/${locale}/portfolio`} class="parallax-teaser__item" data-depth={item.depth} style={item.style}>
-            <img src={item.img} alt={item.alt} loading="lazy" />
+            <Image src={item.img} alt={item.alt} inferSize widths={[300, 480]} sizes="(max-width: 768px) 25vw, 22vw" format="webp" quality={75} loading="lazy" />
           </a>
         ))}
 
@@ -222,8 +222,8 @@ const packages = ['portrait', 'family', 'creative'] as const;
   .parallax-teaser__floating { position: relative; height: 650px; overflow: hidden; border-radius: var(--radius-md); background: var(--color-black); }
   .parallax-teaser__item { position: absolute; display: block; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); transition: box-shadow 0.3s ease; will-change: transform; }
   .parallax-teaser__item:hover { box-shadow: 0 8px 40px rgba(255, 255, 255, 0.1); z-index: 10; }
-  .parallax-teaser__item img { width: 100%; height: auto; display: block; transition: transform 0.4s ease; }
-  .parallax-teaser__item:hover img { transform: scale(1.05); }
+  .parallax-teaser__item :global(img) { width: 100%; height: auto; display: block; transition: transform 0.4s ease; }
+  .parallax-teaser__item:hover :global(img) { transform: scale(1.05); }
   .parallax-teaser__center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3; text-align: center; }
   .parallax-teaser__title-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: var(--space-md); }
   .parallax-teaser__title { font-family: var(--font-heading); font-size: clamp(3.5rem, 8vw, 7rem); font-weight: 300; font-style: italic; color: var(--color-white); letter-spacing: 0.04em; margin: 0; line-height: 1; text-shadow: 0 2px 40px rgba(0, 0, 0, 0.5); }

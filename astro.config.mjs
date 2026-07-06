@@ -29,6 +29,8 @@ export default defineConfig({
     assets: '_assets',
   },
   image: {
-    domains: [],
+    // Allow build-time optimization of portfolio images hosted on R2:
+    // full-quality originals stay on R2, the build emits resized WebP.
+    domains: ['pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev'],
   },
 });

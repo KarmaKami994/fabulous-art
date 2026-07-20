@@ -8,8 +8,17 @@ pages_build_output_dir = "dist"
 binding = "ORDER_IMAGES"
 bucket_name = "fabulous-art-orders"
 
-# Environment Variables (nicht-sensible Werte)
+# D1 Binding für den internen Verkaufsbereich.
+# Der Binding-Name SHOP_DB entspricht context.env.SHOP_DB im Backend.
+[[d1_databases]]
+binding = "SHOP_DB"
+database_name = "fabulous-art-shop"
+database_id = "a30447e6-d94b-43f8-8206-0dd89a65e722"
+
+# Nicht-sensible Laufzeitvariablen.
 [vars]
 MAILJET_FROM_EMAIL = "info@fabulous-art.ch"
 MAILJET_FROM_NAME = "FabulousArt"
 FABIENNE_EMAIL = "info@fabulous-art.ch"
+ACCESS_TEAM_DOMAIN = "https://fabulous-art.cloudflareaccess.com"
+ACCESS_AUD = "252793553dc55027cf585600fbdefcd3e1ce199a7463fe6dc71d63157be7224f"

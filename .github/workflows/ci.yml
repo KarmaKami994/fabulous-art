@@ -22,7 +22,7 @@ jobs:
       - name: Type check (astro check)
         run: npm run check
 
-      - name: Unit tests (pricing, sanitize, i18n)
+      - name: Unit tests
         run: npm test
 
       - name: Build

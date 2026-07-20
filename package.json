@@ -11,21 +11,29 @@
     "astro": "astro",
     "check": "astro check",
     "test": "vitest run",
-    "assets": "node scripts/generate-assets.mjs"
+    "assets": "node scripts/generate-assets.mjs",
+    "shop:dev": "npm run build && wrangler pages dev dist",
+    "shop:db:local:init": "wrangler d1 migrations apply fabulous-art-shop --local",
+    "shop:db:local:seed": "wrangler d1 execute fabulous-art-shop --local --file=./scripts/shop-seed.sql",
+    "shop:db:remote:init": "wrangler d1 migrations apply fabulous-art-shop --remote"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.0",
     "astro": "^5.2.0",
     "marked": "^18.0.5",
     "sanitize-html": "^2.17.5",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "jose": "^6.2.3",
+    "read-excel-file": "^9.3.3",
+    "write-excel-file": "^4.1.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@cloudflare/workers-types": "^4.20260702.1",
+    "@cloudflare/workers-types": "^5.20260719.1",
     "@types/sanitize-html": "^2.16.1",
     "png-to-ico": "^3.0.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "wrangler": "^4.112.0"
   }
 }

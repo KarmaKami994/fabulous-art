@@ -4,8 +4,12 @@ node_modules/
 # Build output
 dist/
 
-# Astro
+# Astro / Cloudflare local state
 .astro/
+.wrangler/
+
+# Wrangler local variables
+.dev.vars
 
 # Environment
 .env
@@ -26,3 +30,16 @@ Thumbs.db
 *.log
 npm-debug.log*
 public/images/portfolio/FullSize/
+# Additional local Wrangler variable files
+.dev.vars.*
+
+# Test output
+coverage/
+
+# Local database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+

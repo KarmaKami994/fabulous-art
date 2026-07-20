@@ -97,3 +97,9 @@ noticed immediately instead of silently disabling bot protection.
 2. **R2 lifecycle rule** on the orders bucket if uploads should expire
    (e.g. delete `orders/` objects after 12 months) — GDPR data-minimization.
 3. Turnstile widget + secret configured for `fabulous-art.ch`.
+
+## Internal sales dashboard
+
+The internal inventory and sales tool is available at `/verkauf/` and uses
+Cloudflare Pages Functions, D1 and Cloudflare Access. Setup and deployment are
+documented in [`VERKAUF_SETUP.md`](./VERKAUF_SETUP.md).

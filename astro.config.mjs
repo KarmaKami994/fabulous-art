@@ -14,7 +14,7 @@ export default defineConfig({
       },
       filter: (page) =>
         // Exclude index redirect page
-        !page.endsWith('fabulous-art.ch/'),
+        !page.endsWith('fabulous-art.ch/') && !page.includes('/verkauf'),
     }),
   ],
   i18n: {

@@ -13,3 +13,18 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https://pub-4c1a1d3bcc4f437faf31c8e1bea0cb6c.r2.dev https://*.githubusercontent.com data: blob:; connect-src 'self' https://api.github.com https://sveltia-cms-auth.info-fabulousart.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests
+
+/verkauf
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+  Referrer-Policy: same-origin
+
+/verkauf/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+  Referrer-Policy: same-origin
+
+/api/verkauf/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+  Referrer-Policy: same-origin

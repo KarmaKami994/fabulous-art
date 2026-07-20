@@ -12,10 +12,10 @@
     "check": "astro check",
     "test": "vitest run",
     "assets": "node scripts/generate-assets.mjs",
-    "shop:dev": "npm run build && wrangler pages dev dist",
-    "shop:db:local:init": "wrangler d1 migrations apply fabulous-art-shop --local",
-    "shop:db:local:seed": "wrangler d1 execute fabulous-art-shop --local --file=./scripts/shop-seed.sql",
-    "shop:db:remote:init": "wrangler d1 migrations apply fabulous-art-shop --remote"
+    "shop:dev": "npm run build && npx --yes wrangler@4.112.0 pages dev dist",
+    "shop:db:local:init": "npx --yes wrangler@4.112.0 d1 migrations apply fabulous-art-shop --local",
+    "shop:db:local:seed": "npx --yes wrangler@4.112.0 d1 execute fabulous-art-shop --local --file=./scripts/shop-seed.sql",
+    "shop:db:remote:init": "npx --yes wrangler@4.112.0 d1 migrations apply fabulous-art-shop --remote"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.0",
@@ -33,7 +33,10 @@
     "@types/sanitize-html": "^2.16.1",
     "png-to-ico": "^3.0.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.9",
-    "wrangler": "^4.112.0"
-  }
+    "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": "22.23.1"
+  },
+  "packageManager": "npm@10.9.8"
 }

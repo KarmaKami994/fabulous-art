@@ -28,19 +28,6 @@
       "description_en": "Arachne, the weaver cursed to be a spider, transforms her prison into a stage. A dance of eternal, creative rebellion against the Gods."
     },
     {
-      "title": "Fragile",
-      "slug": "fragile",
-      "thumbnail": "portfolio/Thumbnail/Fragile.png",
-      "fullsize": "portfolio/Fullsize/Fragile_full.png",
-      "size": "77 × 110.5 cm",
-      "medium": "Charcoal on paper",
-      "year": 2024,
-      "price": "CHF 10'000",
-      "sold": false,
-      "description_de": "Dieses Kunstwerk fängt Verletzlichkeit und verborgene Stärke ein. Die Frau, die im Spagat auf einem Bein balanciert, symbolisiert unsere täglichen Kämpfe. Sie ist in Klebeband eingewickelt, das kühn mit Fragile (Zerbrechlich) beschriftet ist - ein Etikett, das wir uns oft selbst zuschreiben und das Selbstzweifel sowie den Glauben widerspiegelt, wir seien empfindlicher, als wir es tatsächlich sind.",
-      "description_en": "This artwork captures vulnerability and hidden strength. The woman, balancing on one leg in a split, symbolizes our daily struggles. She is wrapped in tape, boldly labeled Fragile - a tag we often place on ourselves, representing self-doubt and the belief we are more delicate than we are."
-    },
-    {
       "title": "The Graces",
       "slug": "the-graces",
       "thumbnail": "portfolio/Thumbnail/TheGraces.png",
@@ -52,6 +39,19 @@
       "sold": false,
       "description_de": "Drei Frauen, die sich wie eine Einheit bewegen. Inspiriert von den antiken griechischen Göttinnen der Schönheit, der Freude und des Charmes – dieses Werk ist ein Tribut an Anmut, Verbindung und Fluss. Ein stiller Tanz, eingefangen in Linien und Licht.",
       "description_en": "Three women, moving as one. Inspired by the ancient Greek goddesses of beauty, joy and charm - this piece is a tribute to grace, connection and flow. A quiet dance captured in lines and light."
+    },
+    {
+      "title": "Fragile",
+      "slug": "fragile",
+      "thumbnail": "portfolio/Thumbnail/Fragile.png",
+      "fullsize": "portfolio/Fullsize/Fragile_full.png",
+      "size": "77 × 110.5 cm",
+      "medium": "Charcoal on paper",
+      "year": 2024,
+      "price": "CHF 10'000",
+      "sold": false,
+      "description_de": "Dieses Kunstwerk fängt Verletzlichkeit und verborgene Stärke ein. Die Frau, die im Spagat auf einem Bein balanciert, symbolisiert unsere täglichen Kämpfe. Sie ist in Klebeband eingewickelt, das kühn mit Fragile (Zerbrechlich) beschriftet ist - ein Etikett, das wir uns oft selbst zuschreiben und das Selbstzweifel sowie den Glauben widerspiegelt, wir seien empfindlicher, als wir es tatsächlich sind.",
+      "description_en": "This artwork captures vulnerability and hidden strength. The woman, balancing on one leg in a split, symbolizes our daily struggles. She is wrapped in tape, boldly labeled Fragile - a tag we often place on ourselves, representing self-doubt and the belief we are more delicate than we are."
     },
     {
       "title": "Purity",

@@ -50,7 +50,7 @@ function normalizeStatus(value: unknown): ProductStatus {
   const key = normalizeText(value);
   if (['', 'available', 'verfugbar', 'lager'].includes(key)) return 'available';
   if (['sold', 'verkauft', 'ausverkauft'].includes(key)) return 'sold';
-  if (['unavailable', 'nichtverfugbar', 'gesperrt'].includes(key)) return 'unavailable';
+  if (['unavailable', 'nichtanlager', 'nichtverfugbar', 'gesperrt'].includes(key)) return 'unavailable';
   throw new Error(`Unbekannter Status: ${String(value ?? '')}`);
 }
 
@@ -168,7 +168,8 @@ function validateRow(row: RowObject): ImportProduct {
 
     const typ = normalizeType(ware, row.typ);
     const price_cents = parsePriceToCents(row.price);
-    let status = normalizeStatus(row.status);
+    const status = normalizeStatus(row.status);
+
     let size = String(row.size ?? '').trim();
     const [limited_no, limited_total] = parseLimited(row.limited);
     let stock_quantity: number;
@@ -184,7 +185,9 @@ function validateRow(row: RowObject): ImportProduct {
       stock_quantity = parseInteger(row.quantity, 'Anzahl');
       if (stock_quantity < 0) throw new Error('Anzahl darf nicht negativ sein.');
       if (status === 'sold') stock_quantity = 0;
-      if (stock_quantity === 0 && status === 'available') status = 'sold';
+      if (stock_quantity === 0 && status === 'available') {
+        throw new Error('Ein Artikel mit Anzahl 0 kann nicht "Verfügbar" sein. Bitte "Nicht an Lager" verwenden.');
+      }
     }
 
     return {
@@ -215,10 +218,21 @@ export function validateImportRows(rows: unknown[][]): ImportProduct[] {
   return items;
 }
 
+
+export function assertImportStatusTransition(
+  uid: string,
+  existingStatus: ProductStatus | null,
+  requestedStatus: ProductStatus,
+): void {
+  if (requestedStatus === 'sold' && existingStatus !== 'sold') {
+    throw new Error(`UID ${uid}: Status "Verkauft" kann nicht manuell gesetzt werden. Er entsteht automatisch durch einen Verkauf auf Bestand 0.`);
+  }
+}
+
 export function limitedLabel(product: Pick<ImportProduct, 'limited_no' | 'limited_total'>): string {
   return product.limited_no && product.limited_total ? `${product.limited_no}/${product.limited_total}` : '';
 }
 
 export function exportStatusLabel(status: ProductStatus): string {
-  return status === 'available' ? 'Verfügbar' : status === 'sold' ? 'Verkauft' : 'Nicht verfügbar';
+  return status === 'available' ? 'Verfügbar' : status === 'sold' ? 'Verkauft' : 'Nicht an Lager';
 }

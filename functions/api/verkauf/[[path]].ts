@@ -2,18 +2,25 @@
 import { authenticateShopRequest, isLocalDevBypass, type ShopAuthEnv } from '../../../src/lib/shop/auth';
 import {
   PRODUCT_EXPORT_HEADERS,
+  assertImportStatusTransition,
   exportStatusLabel,
   limitedLabel,
   validateImportRows,
   validateUid,
 } from '../../../src/lib/shop/validation';
-import type { ImportProduct, ShopProduct, TabularExport } from '../../../src/lib/shop/types';
+import type { ImportProduct, ProductStatus, ShopProduct, TabularExport } from '../../../src/lib/shop/types';
 
 interface Env extends ShopAuthEnv {
   SHOP_DB: D1Database;
 }
 
 type JsonRecord = Record<string, unknown>;
+
+interface ProductHistorySummary {
+  sale_records: number;
+  active_sales_count: number;
+  revenue_cents: number;
+}
 
 class ApiError extends Error {
   constructor(
@@ -82,11 +89,36 @@ async function getProductByUid(db: D1Database, uid: string): Promise<ShopProduct
   return row ? asProduct(row) : null;
 }
 
+async function getProductHistory(db: D1Database, productId: number): Promise<ProductHistorySummary> {
+  const row = await db.prepare(`
+    SELECT
+      COUNT(*) AS sale_records,
+      COALESCE(SUM(CASE WHEN reversed_at IS NULL THEN quantity ELSE 0 END), 0) AS active_sales_count,
+      COALESCE(SUM(CASE WHEN reversed_at IS NULL THEN quantity * unit_price_cents ELSE 0 END), 0) AS revenue_cents
+    FROM sales
+    WHERE product_id = ?
+  `).bind(productId).first<Record<string, unknown>>();
+
+  return {
+    sale_records: Number(row?.sale_records || 0),
+    active_sales_count: Number(row?.active_sales_count || 0),
+    revenue_cents: Number(row?.revenue_cents || 0),
+  };
+}
+
+async function productResponse(db: D1Database, uid: string): Promise<Response> {
+  const product = await getProductByUid(db, uid);
+  if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
+  const history = await getProductHistory(db, product.id);
+  return json(200, { success: true, product, history });
+}
+
 async function handleDashboard(db: D1Database, email: string): Promise<Response> {
   const totals = await db.prepare(`
     SELECT
-      (SELECT COUNT(*) FROM products) AS skus,
-      (SELECT COALESCE(SUM(stock_quantity), 0) FROM products) AS stock,
+      (SELECT COUNT(*) FROM products WHERE archived_at IS NULL) AS skus,
+      (SELECT COALESCE(SUM(stock_quantity), 0) FROM products
+        WHERE archived_at IS NULL AND status = 'available') AS stock,
       (SELECT COALESCE(SUM(quantity), 0) FROM sales WHERE reversed_at IS NULL) AS sales_count,
       (SELECT COALESCE(SUM(quantity * unit_price_cents), 0) FROM sales WHERE reversed_at IS NULL) AS revenue_cents
   `).first();
@@ -94,15 +126,22 @@ async function handleDashboard(db: D1Database, email: string): Promise<Response>
   return json(200, { success: true, user: { email }, totals: totals || {} });
 }
 
-async function handleInventory(db: D1Database): Promise<Response> {
+async function handleInventory(db: D1Database, archived: boolean): Promise<Response> {
+  const where = archived ? 'archived_at IS NOT NULL' : 'archived_at IS NULL';
   const result = await db.prepare(`
     SELECT * FROM products
+    WHERE ${where}
     ORDER BY ware, typ, name, limited_no, uid
     LIMIT 1000
   `).all();
   const products = (result.results || []).map(asProduct);
-  const stock = products.reduce((sum, product) => sum + Number(product.stock_quantity || 0), 0);
-  return json(200, { success: true, products, totals: { rows: products.length, stock } });
+  const stock = archived
+    ? 0
+    : products.reduce(
+      (sum, product) => sum + (product.status === 'available' ? Number(product.stock_quantity || 0) : 0),
+      0,
+    );
+  return json(200, { success: true, products, archived, totals: { rows: products.length, stock } });
 }
 
 async function handleSales(db: D1Database): Promise<Response> {
@@ -143,7 +182,8 @@ async function handleSales(db: D1Database): Promise<Response> {
 async function handleSell(db: D1Database, uid: string, email: string): Promise<Response> {
   const product = await getProductByUid(db, uid);
   if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
-  if (product.status === 'unavailable') throw new ApiError(409, 'Dieses Produkt ist nicht verfügbar.');
+  if (product.archived_at) throw new ApiError(409, 'Archivierte Artikel können nicht verkauft werden.');
+  if (product.status === 'unavailable') throw new ApiError(409, 'Dieses Produkt ist nicht an Lager.');
   if (product.status === 'sold' || product.stock_quantity <= 0) {
     throw new ApiError(409, 'Kein verfügbarer Bestand vorhanden.');
   }
@@ -158,7 +198,8 @@ async function handleSell(db: D1Database, uid: string, email: string): Promise<R
           version = version + 1,
           last_operation_id = ?,
           updated_at = ?
-      WHERE id = ? AND version = ? AND status = 'available' AND stock_quantity > 0
+      WHERE id = ? AND version = ? AND archived_at IS NULL
+        AND status = 'available' AND stock_quantity > 0
     `).bind(operationId, stamp, product.id, product.version),
     db.prepare(`
       INSERT INTO sales(operation_id, product_id, quantity, unit_price_cents, seller_email, sold_at)
@@ -175,7 +216,7 @@ async function handleSell(db: D1Database, uid: string, email: string): Promise<R
   const sale = await db.prepare('SELECT id FROM sales WHERE operation_id = ?').bind(operationId).first();
   if (!sale) throw new ApiError(409, 'Der Bestand wurde zwischenzeitlich geändert. Bitte erneut versuchen.');
   const updated = await getProductByUid(db, uid);
-  return json(200, { success: true, message: `${uid} wurde als verkauft erfasst.`, product: updated });
+  return json(200, { success: true, message: `${uid} wurde als Verkauf erfasst.`, product: updated });
 }
 
 async function handleReverse(db: D1Database, uid: string, email: string): Promise<Response> {
@@ -206,7 +247,7 @@ async function handleReverse(db: D1Database, uid: string, email: string): Promis
     db.prepare(`
       UPDATE products
       SET stock_quantity = stock_quantity + ?,
-          status = 'available',
+          status = CASE WHEN status = 'unavailable' THEN 'unavailable' ELSE 'available' END,
           version = version + 1,
           last_operation_id = ?,
           updated_at = ?
@@ -234,18 +275,188 @@ async function handleReverse(db: D1Database, uid: string, email: string): Promis
   return json(200, { success: true, message: `Letzter Verkauf von ${uid} wurde rückgängig gemacht.`, product: updated });
 }
 
+async function handleStatus(
+  db: D1Database,
+  uid: string,
+  request: Request,
+  email: string,
+): Promise<Response> {
+  const product = await getProductByUid(db, uid);
+  if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
+  if (product.archived_at) throw new ApiError(409, 'Archivierte Artikel müssen zuerst reaktiviert werden.');
+  if (product.status === 'sold') {
+    throw new ApiError(409, 'Verkaufte Artikel können nicht manuell umgestellt werden. Bestand zuerst durch Rückbuchung oder Import wiederherstellen.');
+  }
+
+  const body = await readJson(request);
+  const status = String(body.status || '') as ProductStatus;
+  if (status !== 'available' && status !== 'unavailable') {
+    throw new ApiError(400, 'Manuell erlaubt sind nur Verfügbar und Nicht an Lager. Verkauft wird automatisch gesetzt.');
+  }
+  if (status === 'available' && product.stock_quantity <= 0) {
+    throw new ApiError(409, 'Ein Artikel mit Bestand 0 kann nicht auf Verfügbar gesetzt werden.');
+  }
+  if (product.status === status) {
+    return json(200, { success: true, message: `${uid} hat bereits diesen Status.`, product });
+  }
+
+  const operationId = crypto.randomUUID();
+  const stamp = new Date().toISOString();
+  const label = status === 'available' ? 'Verfügbar' : 'Nicht an Lager';
+  await db.batch([
+    db.prepare(`
+      UPDATE products
+      SET status = ?, version = version + 1, last_operation_id = ?, updated_at = ?
+      WHERE id = ? AND version = ? AND archived_at IS NULL AND status <> 'sold'
+    `).bind(status, operationId, stamp, product.id, product.version),
+    db.prepare(`
+      INSERT INTO audit_log(operation_id, product_id, action, details, changed_by, changed_at)
+      SELECT ?, id, 'status_change', ?, ?, ?
+      FROM products WHERE id = ? AND last_operation_id = ?
+    `).bind(operationId, `Status manuell auf ${label} gesetzt`, email, stamp, product.id, operationId),
+  ]);
+
+  const changed = await db.prepare('SELECT id FROM products WHERE id = ? AND last_operation_id = ?')
+    .bind(product.id, operationId).first();
+  if (!changed) throw new ApiError(409, 'Der Artikel wurde zwischenzeitlich geändert. Bitte erneut laden.');
+  const updated = await getProductByUid(db, uid);
+  return json(200, { success: true, message: `${uid} wurde auf ${label} gesetzt.`, product: updated });
+}
+
+async function handleArchive(db: D1Database, uid: string, email: string): Promise<Response> {
+  const product = await getProductByUid(db, uid);
+  if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
+  if (product.archived_at) throw new ApiError(409, 'Dieser Artikel ist bereits archiviert.');
+
+  const operationId = crypto.randomUUID();
+  const stamp = new Date().toISOString();
+  await db.batch([
+    db.prepare(`
+      UPDATE products
+      SET archived_at = ?, archived_by = ?, version = version + 1,
+          last_operation_id = ?, updated_at = ?
+      WHERE id = ? AND version = ? AND archived_at IS NULL
+    `).bind(stamp, email, operationId, stamp, product.id, product.version),
+    db.prepare(`
+      INSERT INTO audit_log(operation_id, product_id, action, details, changed_by, changed_at)
+      SELECT ?, id, 'archive', 'Artikel archiviert', ?, ?
+      FROM products WHERE id = ? AND last_operation_id = ?
+    `).bind(operationId, email, stamp, product.id, operationId),
+  ]);
+
+  const changed = await db.prepare('SELECT id FROM products WHERE id = ? AND last_operation_id = ?')
+    .bind(product.id, operationId).first();
+  if (!changed) throw new ApiError(409, 'Der Artikel wurde zwischenzeitlich geändert. Bitte erneut laden.');
+  const updated = await getProductByUid(db, uid);
+  return json(200, { success: true, message: `${uid} wurde archiviert. Die Verkaufshistorie bleibt erhalten.`, product: updated });
+}
+
+async function handleReactivate(db: D1Database, uid: string, email: string): Promise<Response> {
+  const product = await getProductByUid(db, uid);
+  if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
+  if (!product.archived_at) throw new ApiError(409, 'Dieser Artikel ist nicht archiviert.');
+
+  const operationId = crypto.randomUUID();
+  const stamp = new Date().toISOString();
+  await db.batch([
+    db.prepare(`
+      UPDATE products
+      SET archived_at = NULL,
+          archived_by = NULL,
+          status = CASE
+            WHEN stock_quantity = 0 AND status = 'available' THEN 'unavailable'
+            ELSE status
+          END,
+          version = version + 1,
+          last_operation_id = ?,
+          updated_at = ?
+      WHERE id = ? AND version = ? AND archived_at IS NOT NULL
+    `).bind(operationId, stamp, product.id, product.version),
+    db.prepare(`
+      INSERT INTO audit_log(operation_id, product_id, action, details, changed_by, changed_at)
+      SELECT ?, id, 'reactivate', 'Artikel reaktiviert', ?, ?
+      FROM products WHERE id = ? AND last_operation_id = ?
+    `).bind(operationId, email, stamp, product.id, operationId),
+  ]);
+
+  const changed = await db.prepare('SELECT id FROM products WHERE id = ? AND last_operation_id = ?')
+    .bind(product.id, operationId).first();
+  if (!changed) throw new ApiError(409, 'Der Artikel wurde zwischenzeitlich geändert. Bitte erneut laden.');
+  const updated = await getProductByUid(db, uid);
+  return json(200, { success: true, message: `${uid} wurde reaktiviert.`, product: updated });
+}
+
+async function handleDelete(
+  db: D1Database,
+  uid: string,
+  request: Request,
+): Promise<Response> {
+  const product = await getProductByUid(db, uid);
+  if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
+
+  const body = await readJson(request);
+  let confirmation: string;
+  try {
+    confirmation = validateUid(body.confirm_uid);
+  } catch {
+    throw new ApiError(400, 'Zur Bestätigung muss die vollständige UID eingegeben werden.');
+  }
+  if (confirmation !== uid) throw new ApiError(400, 'Die eingegebene UID stimmt nicht überein.');
+
+  const history = await getProductHistory(db, product.id);
+  const operationId = crypto.randomUUID();
+  const stamp = new Date().toISOString();
+
+  // Der Marker schützt die gesamte Löschkette vor konkurrierenden Änderungen.
+  // Alle Folgestatements wirken nur, wenn das optimistische Versions-Update erfolgreich war.
+  await db.batch([
+    db.prepare(`
+      UPDATE products
+      SET version = version + 1, last_operation_id = ?, updated_at = ?
+      WHERE id = ? AND version = ?
+    `).bind(operationId, stamp, product.id, product.version),
+    db.prepare(`
+      DELETE FROM audit_log
+      WHERE product_id IN (SELECT id FROM products WHERE id = ? AND last_operation_id = ?)
+    `).bind(product.id, operationId),
+    db.prepare(`
+      DELETE FROM sales
+      WHERE product_id IN (SELECT id FROM products WHERE id = ? AND last_operation_id = ?)
+    `).bind(product.id, operationId),
+    db.prepare(`
+      DELETE FROM products WHERE id = ? AND last_operation_id = ?
+    `).bind(product.id, operationId),
+  ]);
+
+  const remaining = await getProductByUid(db, uid);
+  if (remaining) throw new ApiError(409, 'Der Artikel wurde zwischenzeitlich geändert und nicht gelöscht. Bitte erneut versuchen.');
+
+  return json(200, {
+    success: true,
+    message: `${uid} wurde endgültig gelöscht. Zugehörige Verkaufshistorie wurde ebenfalls entfernt.`,
+    deleted: {
+      uid,
+      sale_records: history.sale_records,
+      sales_count: history.active_sales_count,
+      revenue_cents: history.revenue_cents,
+    },
+  });
+}
+
 function chunk<T>(items: T[], size: number): T[][] {
   const result: T[][] = [];
   for (let index = 0; index < items.length; index += size) result.push(items.slice(index, index + size));
   return result;
 }
 
-async function existingUids(db: D1Database, uids: string[]): Promise<Set<string>> {
-  const found = new Set<string>();
+async function existingProductStatuses(db: D1Database, uids: string[]): Promise<Map<string, ProductStatus>> {
+  const found = new Map<string, ProductStatus>();
   for (const group of chunk(uids, 100)) {
     const placeholders = group.map(() => '?').join(',');
-    const result = await db.prepare(`SELECT uid FROM products WHERE uid IN (${placeholders})`).bind(...group).all<{ uid: string }>();
-    for (const row of result.results || []) found.add(row.uid.toUpperCase());
+    const result = await db.prepare(`SELECT uid, status FROM products WHERE uid IN (${placeholders})`)
+      .bind(...group)
+      .all<{ uid: string; status: ProductStatus }>();
+    for (const row of result.results || []) found.set(row.uid.toUpperCase(), row.status);
   }
   return found;
 }
@@ -295,7 +506,14 @@ async function handleImport(db: D1Database, request: Request, email: string): Pr
   }
 
   const filename = String(body.filename || 'import').replace(/[^a-zA-Z0-9._ -]/g, '_').slice(0, 160);
-  const existing = await existingUids(db, products.map((product) => product.uid));
+  const existing = await existingProductStatuses(db, products.map((product) => product.uid));
+  try {
+    for (const product of products) {
+      assertImportStatusTransition(product.uid, existing.get(product.uid) ?? null, product.status);
+    }
+  } catch (error) {
+    throw new ApiError(400, error instanceof Error ? error.message : 'Ungültiger Statuswechsel im Import.');
+  }
   const created = products.filter((product) => !existing.has(product.uid)).length;
   const updated = products.length - created;
   const stamp = new Date().toISOString();
@@ -320,7 +538,10 @@ async function handleImport(db: D1Database, request: Request, email: string): Pr
 
 async function allProducts(db: D1Database): Promise<ShopProduct[]> {
   const result = await db.prepare(`
-    SELECT * FROM products ORDER BY ware, typ, name, limited_no, uid LIMIT 1000
+    SELECT * FROM products
+    WHERE archived_at IS NULL
+    ORDER BY ware, typ, name, limited_no, uid
+    LIMIT 1000
   `).all();
   return (result.results || []).map(asProduct);
 }
@@ -344,6 +565,7 @@ async function handleExport(db: D1Database, kind: string): Promise<Response> {
         ['P00003', 'Kunstwerk', 'Blue Horizon', 'Print', '3/10', 'A3', '', 120, 'Verfügbar'],
         ['K00001', 'Kunstwerk', 'Blue Horizon', 'Postkarte', '', '', 50, 8, 'Verfügbar'],
         ['B00001', 'Buch', 'Ausstellungskatalog 2026', '', '', '', 25, 39, 'Verfügbar'],
+        ['K00002', 'Kunstwerk', 'Temporär nicht lagernd', 'Postkarte', '', '', 10, 8, 'Nicht an Lager'],
       ],
     };
   } else if (kind === 'sales') {
@@ -387,7 +609,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     if (method === 'GET' && parts.length === 0) return await handleDashboard(env.SHOP_DB, user.email);
     if (method === 'GET' && parts[0] === 'dashboard') return await handleDashboard(env.SHOP_DB, user.email);
-    if (method === 'GET' && parts[0] === 'inventory') return await handleInventory(env.SHOP_DB);
+    if (method === 'GET' && parts[0] === 'inventory') {
+      const archived = new URL(request.url).searchParams.get('archived') === '1';
+      return await handleInventory(env.SHOP_DB, archived);
+    }
     if (method === 'GET' && parts[0] === 'sales') return await handleSales(env.SHOP_DB);
     if (method === 'GET' && parts[0] === 'export' && parts[1]) return await handleExport(env.SHOP_DB, parts[1]);
 
@@ -399,9 +624,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         throw new ApiError(400, error instanceof Error ? error.message : 'Ungültige UID.');
       }
       if (method === 'GET' && parts.length === 2) {
-        const product = await getProductByUid(env.SHOP_DB, uid);
-        if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
-        return json(200, { success: true, product });
+        return await productResponse(env.SHOP_DB, uid);
       }
       if (method === 'POST' && parts[2] === 'sell') {
         assertSameOrigin(request, env);
@@ -410,6 +633,22 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       if (method === 'POST' && parts[2] === 'reverse') {
         assertSameOrigin(request, env);
         return await handleReverse(env.SHOP_DB, uid, user.email);
+      }
+      if (method === 'POST' && parts[2] === 'status') {
+        assertSameOrigin(request, env);
+        return await handleStatus(env.SHOP_DB, uid, request, user.email);
+      }
+      if (method === 'POST' && parts[2] === 'archive') {
+        assertSameOrigin(request, env);
+        return await handleArchive(env.SHOP_DB, uid, user.email);
+      }
+      if (method === 'POST' && parts[2] === 'reactivate') {
+        assertSameOrigin(request, env);
+        return await handleReactivate(env.SHOP_DB, uid, user.email);
+      }
+      if (method === 'DELETE' && parts.length === 2) {
+        assertSameOrigin(request, env);
+        return await handleDelete(env.SHOP_DB, uid, request);
       }
     }
 

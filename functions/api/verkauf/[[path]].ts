@@ -179,6 +179,93 @@ async function handleSales(db: D1Database): Promise<Response> {
   });
 }
 
+async function handleDeleteSale(db: D1Database, saleId: number): Promise<Response> {
+  const row = await db.prepare(`
+    SELECT
+      s.id AS sale_id,
+      s.operation_id AS sale_operation_id,
+      s.quantity AS sale_quantity,
+      s.unit_price_cents,
+      s.sold_at,
+      s.reversed_at,
+      p.id AS product_id,
+      p.uid,
+      p.typ,
+      p.stock_quantity,
+      p.status,
+      p.version
+    FROM sales s
+    JOIN products p ON p.id = s.product_id
+    WHERE s.id = ?
+  `).bind(saleId).first<Record<string, unknown>>();
+
+  if (!row) throw new ApiError(404, 'Verkaufsbuchung wurde nicht gefunden.');
+  if (row.reversed_at) {
+    throw new ApiError(409, 'Diese Verkaufsbuchung wurde bereits rückgängig gemacht und beeinflusst Bestand und Umsatz nicht mehr.');
+  }
+
+  const productId = Number(row.product_id);
+  const quantity = Number(row.sale_quantity || 1);
+  const stockQuantity = Number(row.stock_quantity || 0);
+  const version = Number(row.version || 0);
+  const uid = String(row.uid || '');
+  const saleOperationId = String(row.sale_operation_id || '');
+
+  if (row.typ === 'Print' && stockQuantity + quantity > 1) {
+    throw new ApiError(409, `Bestand von ${uid} wurde nach dem Verkauf bereits verändert. Die Fehlbuchung kann nicht automatisch gelöscht werden.`);
+  }
+
+  const operationId = crypto.randomUUID();
+  const stamp = new Date().toISOString();
+
+  await db.batch([
+    db.prepare(`
+      UPDATE products
+      SET stock_quantity = stock_quantity + ?,
+          status = CASE WHEN status = 'unavailable' THEN 'unavailable' ELSE 'available' END,
+          version = version + 1,
+          last_operation_id = ?,
+          updated_at = ?
+      WHERE id = ? AND version = ?
+        AND EXISTS (
+          SELECT 1 FROM sales
+          WHERE id = ? AND product_id = ? AND reversed_at IS NULL
+        )
+    `).bind(quantity, operationId, stamp, productId, version, saleId, productId),
+    db.prepare(`
+      DELETE FROM audit_log
+      WHERE product_id = ? AND operation_id = ?
+        AND EXISTS (
+          SELECT 1 FROM products WHERE id = ? AND last_operation_id = ?
+        )
+    `).bind(productId, saleOperationId, productId, operationId),
+    db.prepare(`
+      DELETE FROM sales
+      WHERE id = ? AND product_id = ? AND reversed_at IS NULL
+        AND EXISTS (
+          SELECT 1 FROM products WHERE id = ? AND last_operation_id = ?
+        )
+    `).bind(saleId, productId, productId, operationId),
+  ]);
+
+  const remaining = await db.prepare('SELECT id FROM sales WHERE id = ?').bind(saleId).first();
+  if (remaining) {
+    throw new ApiError(409, 'Die Verkaufsbuchung wurde zwischenzeitlich geändert und nicht gelöscht. Bitte erneut laden.');
+  }
+
+  return json(200, {
+    success: true,
+    message: `${uid}: Fehlbuchung wurde endgültig entfernt und ${quantity} Einheit(en) dem Bestand wieder gutgeschrieben.`,
+    deleted: {
+      sale_id: saleId,
+      uid,
+      quantity,
+      revenue_cents: quantity * Number(row.unit_price_cents || 0),
+      sold_at: String(row.sold_at || ''),
+    },
+  });
+}
+
 async function handleSell(db: D1Database, uid: string, email: string): Promise<Response> {
   const product = await getProductByUid(db, uid);
   if (!product) throw new ApiError(404, 'Produkt wurde nicht gefunden.');
@@ -615,6 +702,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
     if (method === 'GET' && parts[0] === 'sales') return await handleSales(env.SHOP_DB);
     if (method === 'GET' && parts[0] === 'export' && parts[1]) return await handleExport(env.SHOP_DB, parts[1]);
+
+    if (parts[0] === 'sales' && parts[1] && parts.length === 2) {
+      const saleId = Number(parts[1]);
+      if (!Number.isInteger(saleId) || saleId <= 0) throw new ApiError(400, 'Ungültige Verkaufs-ID.');
+      if (method === 'DELETE') {
+        assertSameOrigin(request, env);
+        return await handleDeleteSale(env.SHOP_DB, saleId);
+      }
+    }
 
     if (parts[0] === 'products' && parts[1]) {
       let uid: string;

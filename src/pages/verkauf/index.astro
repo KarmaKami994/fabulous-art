@@ -70,9 +70,41 @@ import '../../styles/verkauf.css';
             <article class="shop-card shop-stat"><div class="label">Gezählter Bestand</div><div class="value" id="inventory-stock">–</div><div class="hint">Nicht an Lager und archiviert werden nicht gezählt</div></article>
             <article class="shop-card shop-stat"><div class="label" id="inventory-mode">Aktive Artikel</div><div class="value" id="inventory-rows">–</div></article>
           </div>
-          <div class="shop-section shop-table-wrap">
-            <table class="shop-table">
-              <thead><tr><th>UID</th><th>Ware</th><th>Bezeichnung</th><th>Typ</th><th>Limited NR</th><th>Grösse</th><th>Anzahl</th><th class="money">Preis</th><th>Status</th></tr></thead>
+          <div class="shop-inventory-filterbar shop-section">
+            <div>
+              <strong>Tabellenfilter</strong>
+              <span id="inventory-filter-count" class="shop-muted">Wird geladen …</span>
+            </div>
+            <button class="shop-button shop-button--compact" id="inventory-filter-reset" type="button" disabled>Filter zurücksetzen</button>
+          </div>
+          <div class="shop-table-wrap">
+            <table class="shop-table shop-inventory-table">
+              <thead>
+                <tr><th>UID</th><th>Ware</th><th>Bezeichnung</th><th>Typ</th><th>Limited NR</th><th>Grösse</th><th>Anzahl</th><th class="money">Preis</th><th>Status</th></tr>
+                <tr class="shop-filter-row">
+                  <th><input class="shop-filter-control" type="search" data-inventory-filter="0" placeholder="Suchen …" aria-label="UID filtern" autocomplete="off" /></th>
+                  <th>
+                    <select class="shop-filter-control" data-inventory-filter="1" aria-label="Ware filtern">
+                      <option value="">Alle</option><option value="Kunstwerk">Kunstwerk</option><option value="Buch">Buch</option>
+                    </select>
+                  </th>
+                  <th><input class="shop-filter-control" type="search" data-inventory-filter="2" placeholder="Suchen …" aria-label="Bezeichnung filtern" autocomplete="off" /></th>
+                  <th>
+                    <select class="shop-filter-control" data-inventory-filter="3" aria-label="Typ filtern">
+                      <option value="">Alle</option><option value="Print">Print</option><option value="Postkarte">Postkarte</option><option value="–">Ohne Typ</option>
+                    </select>
+                  </th>
+                  <th><input class="shop-filter-control" type="search" data-inventory-filter="4" placeholder="z. B. 3/10" aria-label="Limited Nummer filtern" autocomplete="off" /></th>
+                  <th><input class="shop-filter-control" type="search" data-inventory-filter="5" placeholder="Suchen …" aria-label="Grösse filtern" autocomplete="off" /></th>
+                  <th><input class="shop-filter-control shop-filter-control--number" type="search" inputmode="decimal" data-inventory-filter="6" data-filter-type="number" placeholder="z. B. >0" aria-label="Anzahl filtern" autocomplete="off" /></th>
+                  <th><input class="shop-filter-control shop-filter-control--number" type="search" inputmode="decimal" data-inventory-filter="7" data-filter-type="number" placeholder="z. B. <=120" aria-label="Preis filtern" autocomplete="off" /></th>
+                  <th>
+                    <select class="shop-filter-control" data-inventory-filter="8" aria-label="Status filtern">
+                      <option value="">Alle</option><option value="Verfügbar">Verfügbar</option><option value="Verkauft">Verkauft</option><option value="Nicht an Lager">Nicht an Lager</option><option value="Archiviert">Archiviert</option>
+                    </select>
+                  </th>
+                </tr>
+              </thead>
               <tbody id="inventory-body"><tr><td class="shop-empty" colspan="9">Wird geladen …</td></tr></tbody>
             </table>
           </div>
@@ -151,5 +183,6 @@ import '../../styles/verkauf.css';
       </main>
     </div>
     <script src="../../scripts/verkauf.ts"></script>
+    <script src="../../scripts/inventory-filters.ts"></script>
   </body>
 </html>

@@ -48,8 +48,8 @@ import '../../styles/verkauf.css';
           </div>
 
           <div class="shop-grid stats shop-section">
-            <article class="shop-card shop-stat"><div class="label">Aktive Artikel / UIDs</div><div class="value" id="stat-skus">–</div></article>
-            <article class="shop-card shop-stat"><div class="label">Aktueller Bestand</div><div class="value" id="stat-stock">–</div><div class="hint">nur aktive & verfügbare Ware</div></article>
+            <article class="shop-card shop-stat"><div class="label">Artikel / UIDs</div><div class="value" id="stat-skus">–</div></article>
+            <article class="shop-card shop-stat"><div class="label">Aktueller Bestand</div><div class="value" id="stat-stock">–</div><div class="hint">Prints + Stückbestand</div></article>
             <article class="shop-card shop-stat"><div class="label">Verkäufe</div><div class="value" id="stat-sales">–</div></article>
             <article class="shop-card shop-stat"><div class="label">Gesamtumsatz</div><div class="value" id="stat-revenue">–</div></article>
           </div>
@@ -59,20 +59,16 @@ import '../../styles/verkauf.css';
 
         <section class="shop-view" data-view="inventory" hidden>
           <header class="shop-topbar">
-            <div>
-              <div class="shop-eyebrow">Report 1</div>
-              <h1>Aktueller Bestand</h1>
-              <div id="inventory-mode" class="shop-muted">Aktive Artikel</div>
-            </div>
+            <div><div class="shop-eyebrow">Report 1</div><h1>Aktueller Bestand</h1></div>
             <div class="shop-actions">
-              <button id="inventory-archived-toggle" class="shop-button" type="button">Archivierte anzeigen</button>
+              <button class="shop-button" id="inventory-archived-toggle" type="button">Archivierte anzeigen</button>
               <button class="shop-button" type="button" data-export-kind="inventory" data-export-format="csv">CSV</button>
               <button class="shop-button blue" type="button" data-export-kind="inventory" data-export-format="xlsx">XLSX</button>
             </div>
           </header>
           <div class="shop-grid two">
             <article class="shop-card shop-stat"><div class="label">Gezählter Bestand</div><div class="value" id="inventory-stock">–</div><div class="hint">Nicht an Lager und archiviert werden nicht gezählt</div></article>
-            <article class="shop-card shop-stat"><div class="label">UID-Zeilen</div><div class="value" id="inventory-rows">–</div></article>
+            <article class="shop-card shop-stat"><div class="label" id="inventory-mode">Aktive Artikel</div><div class="value" id="inventory-rows">–</div></article>
           </div>
           <div class="shop-section shop-table-wrap">
             <table class="shop-table">
@@ -102,8 +98,9 @@ import '../../styles/verkauf.css';
           </div>
           <div class="shop-section">
             <h2>Verkaufsdetails</h2>
+            <p class="shop-muted">Fehlbuchungen können hier einzeln endgültig entfernt werden. Der Bestand wird dabei automatisch zurückgebucht.</p>
             <div class="shop-table-wrap">
-              <table class="shop-table"><thead><tr><th>Datum</th><th>UID</th><th>Ware</th><th>Bezeichnung</th><th>Typ</th><th>Limited NR</th><th>Verkäufer</th><th class="money">Betrag</th></tr></thead><tbody id="sales-detail-body"></tbody></table>
+              <table class="shop-table"><thead><tr><th>Datum</th><th>UID</th><th>Ware</th><th>Bezeichnung</th><th>Typ</th><th>Limited NR</th><th>Verkäufer</th><th class="money">Betrag</th><th>Aktion</th></tr></thead><tbody id="sales-detail-body"></tbody></table>
             </div>
           </div>
         </section>

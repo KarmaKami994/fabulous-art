@@ -334,6 +334,7 @@ interface SalesSummaryRow {
 }
 
 interface SalesDetailRow {
+  id: number;
   sold_at: string;
   uid: string;
   ware: string;
@@ -344,6 +345,28 @@ interface SalesDetailRow {
   seller_email: string;
   quantity: number;
   unit_price_cents: number;
+}
+
+async function deleteSale(row: SalesDetailRow): Promise<void> {
+  const amount = money(row.unit_price_cents * row.quantity);
+  const question =
+    `Fehlbuchung wirklich endgültig löschen?\n\n` +
+    `${row.uid} · ${dateTime(row.sold_at)}\n` +
+    `${row.quantity} Einheit(en) · ${amount}\n\n` +
+    `Der Verkauf wird aus Umsatz und Verkaufshistorie entfernt. ` +
+    `Der Bestand wird um ${row.quantity} Einheit(en) erhöht.`;
+  if (!window.confirm(question)) return;
+
+  setLoading(true);
+  try {
+    const data = await api<{ message: string }>(`sales/${row.id}`, { method: 'DELETE' });
+    showFlash('ok', data.message);
+    await Promise.all([loadSales(), loadDashboard()]);
+  } catch (error) {
+    showFlash('error', error instanceof Error ? error.message : 'Fehlbuchung konnte nicht gelöscht werden.');
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function loadSales(): Promise<void> {
@@ -373,8 +396,17 @@ async function loadSales(): Promise<void> {
         <td>${row.limited_no && row.limited_total ? `${escapeHtml(row.limited_no)}/${escapeHtml(row.limited_total)}` : '–'}</td>
         <td>${escapeHtml(row.seller_email)}</td>
         <td class="money">${escapeHtml(money(row.unit_price_cents * row.quantity))}</td>
+        <td><button class="shop-button danger shop-button--compact" type="button" data-sale-delete="${escapeHtml(row.id)}">Fehlbuchung löschen</button></td>
       </tr>`).join('')
-    : '<tr><td class="shop-empty" colspan="8">Noch keine Verkäufe erfasst.</td></tr>';
+    : '<tr><td class="shop-empty" colspan="9">Noch keine Verkäufe erfasst.</td></tr>';
+
+  detailsBody.querySelectorAll<HTMLButtonElement>('[data-sale-delete]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const saleId = Number(button.dataset.saleDelete);
+      const row = data.details.find((item) => item.id === saleId);
+      if (row) void deleteSale(row);
+    });
+  });
 }
 
 async function switchView(view: ViewName): Promise<void> {

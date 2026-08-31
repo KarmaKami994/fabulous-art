@@ -46,6 +46,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .shop-button.success { border-color: var(--shop-green); background: var(--shop-green); color: white; }
 .shop-button.danger { border-color: var(--shop-red); background: var(--shop-red); color: white; }
 .shop-button.full { width: 100%; }
+.shop-button--compact { min-height: 36px; padding: 7px 10px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
 
 .shop-card { border: 1px solid var(--shop-line); border-radius: 20px; padding: 26px; background: var(--shop-panel); box-shadow: var(--shop-shadow); }
 .shop-card h2 { margin: 0 0 8px; font-size: 23px; letter-spacing: -0.025em; }
@@ -84,6 +85,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .shop-badge.available { background: #e7f6ed; color: var(--shop-green); }
 .shop-badge.sold { background: #fce8e6; color: var(--shop-red); }
 .shop-badge.unavailable { background: #fff1cf; color: var(--shop-amber); }
+.shop-badge.archived { background: #ecebea; color: #5f625f; }
+.shop-danger-zone { display: grid; gap: 8px; margin-top: 8px; border-top: 1px solid var(--shop-line); padding-top: 14px; }
+.shop-danger-zone small { color: var(--shop-muted); line-height: 1.45; }
 
 .shop-table-wrap { overflow: auto; border: 1px solid var(--shop-line); border-radius: 15px; background: white; box-shadow: var(--shop-shadow); }
 .shop-table { width: 100%; min-width: 960px; border-collapse: collapse; }

@@ -17,7 +17,7 @@
 * { box-sizing: border-box; }
 html { background: var(--shop-bg); }
 body { margin: 0; min-width: 320px; background: var(--shop-bg); color: var(--shop-text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 
 .shop-shell { min-height: 100vh; display: grid; grid-template-columns: 286px minmax(0, 1fr); }
@@ -89,10 +89,20 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .shop-danger-zone { display: grid; gap: 8px; margin-top: 8px; border-top: 1px solid var(--shop-line); padding-top: 14px; }
 .shop-danger-zone small { color: var(--shop-muted); line-height: 1.45; }
 
+.shop-inventory-filterbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+.shop-inventory-filterbar > div { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.shop-inventory-filterbar strong { font-size: 15px; }
+.shop-inventory-filterbar .shop-muted { font-size: 13px; }
+
 .shop-table-wrap { overflow: auto; border: 1px solid var(--shop-line); border-radius: 15px; background: white; box-shadow: var(--shop-shadow); }
 .shop-table { width: 100%; min-width: 960px; border-collapse: collapse; }
+.shop-inventory-table { min-width: 1280px; }
 .shop-table th, .shop-table td { padding: 13px 15px; border-bottom: 1px solid #e9e5dd; text-align: left; vertical-align: middle; }
 .shop-table th { position: sticky; top: 0; z-index: 1; background: #f8f7f3; color: #4f534e; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.shop-filter-row th { position: static; padding: 7px 8px 9px; background: #f8f7f3; text-transform: none; letter-spacing: 0; }
+.shop-filter-control { width: 100%; min-width: 95px; height: 34px; border: 1px solid #c9c5bc; border-radius: 8px; padding: 5px 8px; background: white; color: var(--shop-text); font-size: 12px; outline: none; }
+.shop-filter-control:focus { border-color: var(--shop-primary); box-shadow: 0 0 0 2px rgb(32 37 31 / 10%); }
+.shop-filter-control--number { min-width: 88px; }
 .shop-table tr:last-child td { border-bottom: 0; }
 .shop-table .money { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .shop-table .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
@@ -125,4 +135,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .shop-search-form { flex-direction: column; }
   .shop-search-form .shop-button { width: 100%; }
   .shop-detail-list { grid-template-columns: 120px 1fr; }
+  .shop-inventory-filterbar { align-items: stretch; flex-direction: column; }
+  .shop-inventory-filterbar .shop-button { width: 100%; }
 }
